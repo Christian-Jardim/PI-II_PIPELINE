@@ -1,76 +1,76 @@
 typedef struct sinais {
-  int EscPC,
-      IouD,
-      EscMem,
-      EscRI,
-      RegDest,
-      MemParaReg,
-      EscReg,
-      ULAFontA,
-      ULAFontB,
-      ControleULA,
-      FontePC,
-      Branch;
+	int EscPC,
+	    IouD,
+	    EscMem,
+	    EscRI,
+	    RegDest,
+	    MemParaReg,
+	    EscReg,
+	    ULAFontA,
+	    ULAFontB,
+	    ControleULA,
+	    FontePC,
+	    Branch;
 } Sign;
 
 typedef struct registradores {
-  int pc,
-      br[8],
-      id_ex,
-      ex_mem,
-      mem_wb;
-  char if_id[18];
+	int pc,
+	    br[8],
+	    id_ex,
+	    ex_mem,
+	    mem_wb;
+	char if_id[18];
 } Reg;
 
 typedef enum tipo {
-  Tipo_R=0,
-  Tipo_I=1,
-  Tipo_J=2,
-  Tipo_OUTROS=3
+	Tipo_R=0,
+	Tipo_I=1,
+	Tipo_J=2,
+	Tipo_OUTROS=3
 } Type;
 
 typedef struct instrucao {
-  char opcode[5],
-       rs[4],
-       rt[4],
-       rd[4],
-       funct[4],
-       imm[7],
-       addr[8],
-       dado[9];
+	char opcode[5],
+	     rs[4],
+	     rt[4],
+	     rd[4],
+	     funct[4],
+	     imm[7],
+	     addr[8],
+	     dado[9];
 } Inst;
 
 typedef struct decodificador {
-  int opcode,
-      rt,
-      rs,
-      rd,
-      funct,
-      imm,
-      addr,
-      dado;
-  Tipo_Instrucao tipo;
+	int opcode,
+	    rt,
+	    rs,
+	    rd,
+	    funct,
+	    imm,
+	    addr,
+	    dado;
+	Tipo_Instrucao tipo;
 } Decod;
 
 typedef struct Nodo {
-  int pc,
-      br[8],
-      if_id,
-			id_ex,
-			ex_mem,
-			mem_wb;
+	int pc,
+	    br[8],
+	    if_id,
+	    id_ex,
+	    ex_mem,
+	    mem_wb;
 	char mem[256][17];
-  struct Nodo *prox;
+	struct Nodo *prox;
 } Nodo;
 
 typedef struct pilha {
-  Nodo *topo;
+	Nodo *topo;
 } Stack;
 
 typedef struct ALUout {
-  int resultado,
-      flag_zero,
-      overflow;
+	int resultado,
+	    flag_zero,
+	    overflow;
 } ALUout;
 
 //Controle de escrita
