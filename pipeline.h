@@ -2,11 +2,9 @@ typedef struct sinais {
 	int EscPC,
 	    IouD,
 	    EscMem,
-	    EscRI,
 	    RegDest,
 	    MemParaReg,
 	    EscReg,
-	    ULAFontA,
 	    ULAFontB,
 	    ControleULA,
 	    FontePC,
@@ -55,11 +53,11 @@ typedef struct decodificador {
 typedef struct Nodo {
 	int pc,
 	    br[8],
-	    if_id,
 	    id_ex,
 	    ex_mem,
 	    mem_wb;
-	char mem[256][17];
+	char mem[256][17],
+		if_id[18];
 	struct Nodo *prox;
 } Nodo;
 
