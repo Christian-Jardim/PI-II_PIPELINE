@@ -17,9 +17,9 @@ typedef struct registradores {
   int pc,
       br[8],
       if_id,
-			id_ex,
-			ex_mem,
-			mem_wb;
+      id_ex,
+      ex_mem,
+      mem_wb;
 } Reg;
 
 typedef enum tipo {
