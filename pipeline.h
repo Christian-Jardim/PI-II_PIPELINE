@@ -1,22 +1,23 @@
 typedef struct sinais {
 	int EscPC,
-	    IouD,
-	    EscMem,
 	    RegDest,
-	    MemParaReg,
-	    EscReg,
-	    ULAFontB,
-	    ControleULA,
-	    FontePC,
-	    Branch;
+	ULAOp2,
+	ULAOp1,
+	ULAOp0,
+	ULAFonte,
+	DvC,
+	DVI,
+	EscMem,
+	EscReg,
+	MemParaReg;
 } Sign;
 
 typedef struct registradores {
 	int pc,
 	    br[8],
-	    id_ex,
-	    ex_mem,
-	    mem_wb;
+	    id_ex[16],
+	    ex_mem[8],
+	    mem_wb[6];
 	char if_id[18];
 } Reg;
 
