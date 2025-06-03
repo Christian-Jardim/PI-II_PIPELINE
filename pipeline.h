@@ -16,10 +16,10 @@ typedef struct sinais {
 typedef struct registradores {
   int pc,
       br[8],
-      if_id,
       id_ex,
       ex_mem,
       mem_wb;
+  char if_id[18];
 } Reg;
 
 typedef enum tipo {
