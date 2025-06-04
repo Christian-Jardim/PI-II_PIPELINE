@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "pipeline.h"
 
 // Funcao para iniciar pilha
 void inicia_pilha(Pilha *p) {
