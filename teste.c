@@ -5,6 +5,21 @@
 #define MI char mi[256][17] = {{'\0'}}
 #define MD int md[256] = {0}
 
+typedef struct sinais {
+  int EscPC,
+      IouD,
+      EscMem,
+      EscRI,
+      RegDest,
+      MemParaReg,
+      EscReg,
+      ULAFontA,
+      ULAFontB,
+      ControleULA,
+      FontePC,
+      Branch;
+} Sinais;
+
 typedef struct registradores {
 	int pc,
 	    br[8],
@@ -81,6 +96,7 @@ void salvarMemDados(int *md);
 
 // PROGRAMA PRINCIPAL
 int main() {
+Sinais sinais;
 	Inst inst;
 	Decod decod;
 	Stack stack;
