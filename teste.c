@@ -59,19 +59,25 @@ void menu();
 
 int carregaMemInst(char mi[256][17]);
 void carregarMemoriaDados(int md[256]);
+
 void printMemory(char mi[256][17], Inst *inst, Decod *decod);
 void printmemory(int *md);
 void printReg(Reg *reg);
+
 void decodificarInstrucao(const char *bin, Inst *inst, Decod *decod);
 void copiarBits(const char *instrucao, char *destino, int inicio, int tamanho);
 int binarioParaDecimal(const char *bin, int sinal);
 void printInstrucao(Decod *decod);
+
 void inicia_pilha(Stack *stack);
 int step_back(Stack *stack,Reg *reg, int *md);
 void empilha(Stack *stack,Reg *reg, int *md);
+
 int somador(int op1, int op2);
 int limite_back(Stack *stack);
 
+void salvarAssembly(char mi[256][17]);
+void salvarMemDados(int *md);
 
 // PROGRAMA PRINCIPAL
 int main() {
@@ -112,25 +118,25 @@ int main() {
 			printReg(&reg);
 			printf("\n\nPC: %d", reg.pc);
 			break;
-			/*case 6:
-				salvarAssembly(mi);
-				break;
-			case 7:
-				salvarMemDados(mi);
-				break;
-			case 8:
-				executaP(mi, &inst, &decod, &reg,md, &stack);
-				break;
+		case 6:
+			salvarAssembly(mi);
+			break;
+		case 7:
+			salvarMemDados(md);
+			break;
+			/*case 8:
+			        executaP(mi, &inst, &decod, &reg,md, &stack);
+			        break;
 			case 9:
-				executaI(mi, &inst, &decod,&reg,md,&stack);
-				break;
+			        executaI(mi, &inst, &decod,&reg,md,&stack);
+			        break;
 			case 10:
-				step_back(&stack,&reg,md);
-				break;
+			        step_back(&stack,&reg,md);
+			        break;
 			case 11:
-				printf("Voce saiu!!!");
-				break;
-				*/
+			        printf("Voce saiu!!!");
+			        break;
+			        */
 		}
 	} while(op != 11);
 	return 0;
@@ -148,55 +154,77 @@ void menu() {
 	printf("5 - Imprimir todo o simulador\n");
 	printf("6 - Salvar .asm\n");
 	printf("7 - Salvar .dat\n");
-	printf("8 - Executar programa\n");
+	/*printf("8 - Executar programa\n");
 	printf("9 - Executar instrucao\n");
-	printf("10 - Volta uma instrucao\n");
+	printf("10 - Volta uma instrucao\n");*/
 	printf("11 - Sair\n\n");
 }
 
 // carrega memoria de instrucoes a partir de um "arquivo.mem"
 int carregaMemInst(char mi[256][17]) {
-	char arquivo[20];
+	char arquivo[20],extensao[5];
+	int tam;
+
 	// abre o arquivo em modo leitura
 	printf("Nome do arquivo: ");
 	scanf("%s", arquivo);
-	FILE *arq = fopen (arquivo, "r");
-	if (!arq)
-	{
-		perror ("Erro ao abrir arquivo") ;
-		exit (1) ;
-	}
-	int i = 0;
-	char linha[20]; // Buffer para leitura
-	while (i < 256 && fgets(linha, sizeof(linha), arq)) {
-		// Remover quebras de linha e caracteres extras
-		linha[strcspn(linha, "\r\n")] = '\0';
 
-		// Ignorar linhas vazias
-		if (strlen(linha) == 0) {
-			continue;
+	tam = strlen(arquivo);
+	strncpy(extensao,arquivo + tam - 4,4);
+	extensao[4] = '\0';
+
+	if(strcmp(extensao, ".mem") != 0) {
+		printf("Extensao de arquivo nao suportada!\n");
+	} else {
+		FILE *arq = fopen (arquivo, "r");
+		if (!arq)
+		{
+			perror ("Erro ao abrir arquivo") ;
+			exit (1) ;
 		}
+		int i = 0;
+		char linha[20]; // Buffer para leitura
+		while (i < 256 && fgets(linha, sizeof(linha), arq)) {
+			// Remover quebras de linha e caracteres extras
+			linha[strcspn(linha, "\r\n")] = '\0';
 
-		strncpy(mi[i], linha, 16); // Copia ate 16 caracteres
-		mi[i][16] = '\0'; // Garante terminacao de string
-		i++; // Avanca corretamente para a proxima posicao
+			// Ignorar linhas vazias
+			if (strlen(linha) == 0) {
+				continue;
+			}
+
+			strncpy(mi[i], linha, 16); // Copia ate 16 caracteres
+			mi[i][16] = '\0'; // Garante terminacao de string
+			i++; // Avanca corretamente para a proxima posicao
+		}
+		fclose(arq);
 	}
-	fclose(arq);
 }
 
 //carrega memoria de dados a partir de um "arquivo.dat"
 void carregarMemoriaDados(int md[256]) {
-	char arquivo[20];
+	char arquivo[20],extensao[5];
+	int tam;
+
 	printf("Nome do arquivo: ");
 	scanf("%s", arquivo);
-	FILE *arq = fopen(arquivo, "r");
-	if (!arq) {
-		perror ("Erro ao abrir arquivo") ;
-		exit (1) ;
-	}
-	int i = 0;
-	while (fscanf(arq, "%d", &md[i]) != EOF) {
-		i++;
+
+	tam = strlen(arquivo);
+	strncpy(extensao,arquivo + tam - 4,4);
+	extensao[4] = '\0';
+
+	if(strcmp(extensao, ".dat") != 0) {
+		printf("Extensao de arquivo nao suportada!\n");
+	} else {
+		FILE *arq = fopen(arquivo, "r");
+		if (!arq) {
+			perror ("Erro ao abrir arquivo") ;
+			exit (1) ;
+		}
+		int i = 0;
+		while (fscanf(arq, "%d", &md[i]) != EOF) {
+			i++;
+		}
 	}
 }
 
@@ -367,7 +395,7 @@ void salvarAssembly(char mi[256][17]) {
 }
 
 // salva memoria de dados em um "arquivo.dat"
-void salvarMemDados(int *memdados) {
+void salvarMemDados(int *md) {
 	FILE *arquivo;
 	char nomeArquivo[20];
 
@@ -380,7 +408,7 @@ void salvarMemDados(int *memdados) {
 	}
 	for (int i = 0; i < 256; i++)
 	{
-		fprintf(arquivo, "%d\n", memdados[i]);
+		fprintf(arquivo, "%d\n", md[i]);
 	}
 	fclose(arquivo);
 }
