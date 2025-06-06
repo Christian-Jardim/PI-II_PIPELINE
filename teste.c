@@ -98,6 +98,7 @@ int step_back(Stack *stack,Reg *reg, int *md);
 void empilha(Stack *stack,Reg *reg, int *md);
 int limite_back(Stack *stack);
 
+void ULA(int op1, int op2, int opULA, ULA_Out *ula_out);
 int somador(int op1, int op2);
 
 void salvarAssembly(char mi[256][17]);
@@ -563,3 +564,42 @@ void escreve_md(int *index, int dado, int EscMem) {
 		*index = dado;
 	}
 } 
+
+// Funcao ULA
+void ULA(int op1, int op2, int opULA, ULA_Out *ula_out) {
+  switch(opULA) {
+  case 0:
+    ula_out->resultado = op1 + op2;
+
+    if(ula_out->resultado == 0) {
+      ula_out->flag_zero = 1;
+    }
+
+    if ((op1 > 0 && op2 > 0 && ula_out->resultado < 0) || (op1 < 0 && op2 < 0 && ula_out->resultado > 0)) {
+      ula_out->overflow = 1;
+      printf("OVERFLOW - ADD: %d + %d = %d\n", op1, op2, ula_out->resultado);
+    }
+    break;
+
+  case 2:
+    ula_out->resultado = op1 - op2;
+
+    if(ula_out->resultado == 0) {
+      ula_out->flag_zero = 1;
+    }
+
+    if ((op1 > 0 && op2 < 0 && ula_out->resultado < 0) || (op1 < 0 && op2 > 0 && ula_out->resultado > 0)) {
+      ula_out->overflow = 1;
+      printf("OVERFLOW - SUB: %d - %d = %d\n", op1, op2, ula_out->resultado);
+    }
+    break;
+
+  case 4:
+    ula_out->resultado = op1 & op2;
+    break;
+
+  case 5:
+    ula_out->resultado = op1 | op2;
+    break;
+  }
+}
