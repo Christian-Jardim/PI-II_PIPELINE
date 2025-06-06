@@ -6,17 +6,15 @@
 #define MD int md[256] = {0}
 
 typedef struct sinais {
-	int Esc_PC,
+	int EscPC,
 	    RegDest,
-	    ULA_Op2,
-	    ULA_Op1,
-	    ULA_Op0,
-	    ULA_Fonte,
+	    ULAOp,
+	    ULAFonte,
 	    DC,
 	    DI,
-	    Esc_Mem,
-	    Esc_Reg,
-	    Mem_Para_Reg;
+	    EscMem,
+	    EscReg,
+	    MemParaReg;
 } Sinais;
 
 typedef struct registradores {
@@ -67,7 +65,7 @@ typedef struct Nodo {
 	int pc,
 	    br[8],
 	    if_id[17],
-	    id_ex[16],
+	    id_ex[14],
 	    ex_mem[8],
 	    mem_wb[5],
 	    md[256];
@@ -108,10 +106,12 @@ void executa_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md
 
 void escreve_br(int *reg, int dado, int EscReg);
 void escreve_md(int *index, int dado, int EscMem);
+void escreve_pc(int *pc, int op2, int EscPC);
 
 //MUX
 int MemReg(int op2, int op1, int MemParaReg);
 int RegDest(int op2, int op1, int Reg_Dest);
+int ULAFonte(int b, int imm, int ULAFonte);
 
 // PROGRAMA PRINCIPAL
 int main() {
@@ -168,7 +168,7 @@ int main() {
 			break;
 		case 10:
 			step_back(&stack,&reg,md);
-				break;
+			break;
 		case 11:
 			printf("Voce saiu!!!");
 			break;
@@ -461,7 +461,7 @@ void empilha(Stack *stack,Reg *reg, int *md) {
 	for(i=0; i<17; i++) {
 		nNodo->if_id[i]=reg->if_id[i];
 	}
-	for(i=0; i<16; i++) {
+	for(i=0; i<14; i++) {
 		nNodo->id_ex[i]=reg->id_ex[i];
 	}
 	for(i=0; i<8; i++) {
@@ -517,10 +517,10 @@ void executa_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md
 		printf("########## EXECUCAO CONCLUIDA! ##########\n");
 		return;
 	} else {
-        empilha(stack,reg,md);
-        
+		empilha(stack,reg,md);
+
 		escreve_br(&reg->br[reg->mem_wb[0]], MemReg(reg->mem_wb[1], reg->mem_wb[2], reg->mem_wb[4]), reg->mem_wb[3]);
-		
+
 		reg->mem_wb[0] = reg->ex_mem[0];
 		reg->mem_wb[1] = reg->ex_mem[2];
 		reg->mem_wb[2] = reg->ex_mem[2];
@@ -530,7 +530,34 @@ void executa_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md
 		escreve_md(&md[reg->ex_mem[2]], reg->ex_mem[1], reg->ex_mem[3]);
 
 		reg->ex_mem[0] = RegDest(reg->id_ex[0], reg->id_ex[1], reg->id_ex[8]);
-		reg->ex_mem[1] =reg->id_ex[4];
+		reg->ex_mem[1] = reg->id_ex[4];
+		ULA(reg->id_ex[5], ULAFonte(reg->id_ex[3], reg->id_ex[4], reg->id_ex[7]), reg->ex_mem[6], ula_out);
+		reg->ex_mem[2] = ula_out->resultado;
+		reg->ex_mem[3] = reg->id_ex[9];
+		reg->ex_mem[4] = reg->id_ex[10];
+		reg->ex_mem[5] = reg->id_ex[11];
+		reg->ex_mem[6] = reg->id_ex[12];
+		reg->ex_mem[7] = reg->id_ex[13];
+
+		reg->id_ex[0] = decod->rd;
+		reg->id_ex[1] = decod->rs;
+		reg->id_ex[2] = reg->if_id[17];
+		reg->id_ex[3] = decod->imm;
+		reg->id_ex[4] = reg->br[decod->rt];
+		reg->id_ex[5] = reg->br[decod->rs];
+		reg->id_ex[6] = sinais->ULAOp;
+		reg->id_ex[7] = sinais->ULAFonte;
+		reg->id_ex[8] = sinais->RegDest;
+		reg->id_ex[9] = sinais->EscMem;
+		reg->id_ex[10] = sinais->DI;
+		reg->id_ex[11] = sinais->DC;
+		reg->id_ex[12] = sinais->EscReg;
+		reg->id_ex[13] = sinais->MemParaReg;
+		//controle(decod->opcode, decod->funct);
+		escreve_pc(&reg->pc,if_id[17],sinais->EscPC);
+		decodificarInstrucao(mi[reg->pc], inst, decod);
+		
+		if_id[17] = somador(reg->pc,1);
 		
 	}
 }
@@ -553,6 +580,22 @@ int RegDest(int op2, int op1, int Reg_Dest) {
 	}
 }
 
+int ULAFonte(int b, int imm, int ULAFonte) {
+	switch (ULAFonte) {
+	case 0:
+		return b;
+		break;
+	case 1:
+		return imm;
+	}
+}
+
+void escreve_pc(int *pc, int op2, int EscPC) {
+	if(EscPC == 1) {
+		*pc = op2;
+	}
+}
+
 void escreve_br(int *reg, int dado, int EscReg) {
 	if(EscReg == 1) {
 		*reg = dado;
@@ -563,43 +606,43 @@ void escreve_md(int *index, int dado, int EscMem) {
 	if(EscMem == 1) {
 		*index = dado;
 	}
-} 
+}
 
 // Funcao ULA
 void ULA(int op1, int op2, int opULA, ULA_Out *ula_out) {
-  switch(opULA) {
-  case 0:
-    ula_out->resultado = op1 + op2;
+	switch(opULA) {
+	case 0:
+		ula_out->resultado = op1 + op2;
 
-    if(ula_out->resultado == 0) {
-      ula_out->flag_zero = 1;
-    }
+		if(ula_out->resultado == 0) {
+			ula_out->flag_zero = 1;
+		}
 
-    if ((op1 > 0 && op2 > 0 && ula_out->resultado < 0) || (op1 < 0 && op2 < 0 && ula_out->resultado > 0)) {
-      ula_out->overflow = 1;
-      printf("OVERFLOW - ADD: %d + %d = %d\n", op1, op2, ula_out->resultado);
-    }
-    break;
+		if ((op1 > 0 && op2 > 0 && ula_out->resultado < 0) || (op1 < 0 && op2 < 0 && ula_out->resultado > 0)) {
+			ula_out->overflow = 1;
+			printf("OVERFLOW - ADD: %d + %d = %d\n", op1, op2, ula_out->resultado);
+		}
+		break;
 
-  case 2:
-    ula_out->resultado = op1 - op2;
+	case 2:
+		ula_out->resultado = op1 - op2;
 
-    if(ula_out->resultado == 0) {
-      ula_out->flag_zero = 1;
-    }
+		if(ula_out->resultado == 0) {
+			ula_out->flag_zero = 1;
+		}
 
-    if ((op1 > 0 && op2 < 0 && ula_out->resultado < 0) || (op1 < 0 && op2 > 0 && ula_out->resultado > 0)) {
-      ula_out->overflow = 1;
-      printf("OVERFLOW - SUB: %d - %d = %d\n", op1, op2, ula_out->resultado);
-    }
-    break;
+		if ((op1 > 0 && op2 < 0 && ula_out->resultado < 0) || (op1 < 0 && op2 > 0 && ula_out->resultado > 0)) {
+			ula_out->overflow = 1;
+			printf("OVERFLOW - SUB: %d - %d = %d\n", op1, op2, ula_out->resultado);
+		}
+		break;
 
-  case 4:
-    ula_out->resultado = op1 & op2;
-    break;
+	case 4:
+		ula_out->resultado = op1 & op2;
+		break;
 
-  case 5:
-    ula_out->resultado = op1 | op2;
-    break;
-  }
+	case 5:
+		ula_out->resultado = op1 | op2;
+		break;
+	}
 }
