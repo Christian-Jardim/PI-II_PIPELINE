@@ -103,7 +103,7 @@ int somador(int op1, int op2);
 void salvarAssembly(char mi[256][17]);
 void salvarMemDados(int *md);
 
-void executa_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md, Stack *stack, Sinais *sinais);
+void executa_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md, Stack *stack, Sinais *sinais, ULA_Out *ula_out);
 
 void escreve_br(int *reg, int dado, int EscReg);
 void escreve_md(int *index, int dado, int EscMem);
@@ -526,7 +526,7 @@ void executa_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md
 		reg->mem_wb[3] = reg->ex_mem[4];
 		reg->mem_wb[4] = reg->ex_mem[5];
 
-		escreve_md(&md[reg->ex_mem[2], reg->ex_mem[1], reg->ex_mem[3]);
+		escreve_md(&md[reg->ex_mem[2]], reg->ex_mem[1], reg->ex_mem[3]);
 
 		reg->ex_mem[0] = RegDest(reg->id_ex[0], reg->id_ex[1], reg->id_ex[8]);
 		reg->ex_mem[1] =reg->id_ex[4];
