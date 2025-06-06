@@ -522,7 +522,7 @@ void executa_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md
 		
 		reg->mem_wb[0] = reg->ex_mem[0];
 		reg->mem_wb[1] = reg->ex_mem[2];
-		reg->mem_wb[2] = md[ula_out->resultado];
+		reg->mem_wb[2] = reg->ex_mem[2];
 		reg->mem_wb[3] = reg->ex_mem[4];
 		reg->mem_wb[4] = reg->ex_mem[5];
 
