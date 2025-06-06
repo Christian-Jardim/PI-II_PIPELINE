@@ -57,6 +57,12 @@ typedef struct decodificador {
 	Type tipo;
 } Decod;
 
+typedef struct ULA_Out {
+        int resultado,
+            flag_zero,
+            overflow;
+} ULA_Out;
+
 typedef struct Nodo {
 	int pc,
 	    br[8],
@@ -97,7 +103,7 @@ int somador(int op1, int op2);
 void salvarAssembly(char mi[256][17]);
 void salvarMemDados(int *md);
 
-void executa_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md, Stack *stack, Sinais *sinais);
+void executa_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md, Stack *stack, Sinais *sinais, ULA_Out *ula_out);
 
 void escreve_br(int *reg, int dado, int EscReg);
 
@@ -111,6 +117,7 @@ int main() {
 	Decod decod;
 	Stack stack;
 	Reg reg;
+ULA_Out ula_out;
 	MI;
 	MD;
 
@@ -503,7 +510,7 @@ int limite_back(Stack *stack) {
 	}
 }
 
-void executa_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md, Stack *stack, Sinais *sinais) {
+void executa_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md, Stack *stack, Sinais *sinais, ULA_Out *ula_out) {
 	if(strcmp(mi[reg->pc], "0000000000000000") == 0) {
 		printf("########## EXECUCAO CONCLUIDA! ##########\n");
 		return;
