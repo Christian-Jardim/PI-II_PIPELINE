@@ -492,7 +492,7 @@ void executa_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md
 		printf("########## EXECUCAO CONCLUIDA! ##########\n");
 		return;
 	} else {
-		escreve_br(&reg->br[reg->mem_wb[0]], MemReg(reg->mem_wb[1], reg->mem_wb[2], sinais->MemParaReg),sinais->EscReg);
+		escreve_br(&reg->br[reg->mem_wb[0]], MemReg(reg->mem_wb[1], reg->mem_wb[2], reg->mem_wb[4]), reg->mem_wb[3]);
 	}
 }
 
