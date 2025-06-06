@@ -6,27 +6,26 @@
 #define MD int md[256] = {0}
 
 typedef struct sinais {
-  int EscPC,
-      IouD,
-      EscMem,
-      EscRI,
-      RegDest,
-      MemParaReg,
-      EscReg,
-      ULAFontA,
-      ULAFontB,
-      ControleULA,
-      FontePC,
-      Branch;
+	int EscPC,
+	    EscMem,
+	    EscRI,
+	    RegDest,
+	    MemParaReg,
+	    EscReg,
+	    ULAFontA,
+	    ULAFontB,
+	    ControleULA,
+	    FontePC,
+	    Branch;
 } Sinais;
 
 typedef struct registradores {
 	int pc,
 	    br[8],
+	    if_id[18],
 	    id_ex[16],
 	    ex_mem[8],
-	    mem_wb[6],
-	    if_id[18];
+	    mem_wb[6];
 } Reg;
 
 //STRUCTS e ENUMS
@@ -78,25 +77,32 @@ void carregarMemoriaDados(int md[256]);
 void printMemory(char mi[256][17], Inst *inst, Decod *decod);
 void printmemory(int *md);
 void printReg(Reg *reg);
+void printInstrucao(Decod *decod);
 
 void decodificarInstrucao(const char *bin, Inst *inst, Decod *decod);
 void copiarBits(const char *instrucao, char *destino, int inicio, int tamanho);
 int binarioParaDecimal(const char *bin, int sinal);
-void printInstrucao(Decod *decod);
 
 void inicia_pilha(Stack *stack);
 int step_back(Stack *stack,Reg *reg, int *md);
 void empilha(Stack *stack,Reg *reg, int *md);
+int limite_back(Stack *stack);
 
 int somador(int op1, int op2);
-int limite_back(Stack *stack);
 
 void salvarAssembly(char mi[256][17]);
 void salvarMemDados(int *md);
 
+void executa_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md, Stack *stack, Sinais *sinais);
+
+void escreve_br(int *reg, int dado, int EscReg);
+
+//MUX
+int MemReg(int op2, int op1, int MemParaReg);
+
 // PROGRAMA PRINCIPAL
 int main() {
-Sinais sinais;
+	Sinais sinais;
 	Inst inst;
 	Decod decod;
 	Stack stack;
@@ -140,13 +146,13 @@ Sinais sinais;
 		case 7:
 			salvarMemDados(md);
 			break;
-			/*case 8:
-			        executaP(mi, &inst, &decod, &reg,md, &stack);
-			        break;
-			case 9:
-			        executaI(mi, &inst, &decod,&reg,md,&stack);
-			        break;
-			case 10:
+		case 8:
+
+			break;
+		case 9:
+			executa_ciclo(mi, &inst, &decod, &reg, md, &stack, &sinais);
+			break;
+			/*case 10:
 			        step_back(&stack,&reg,md);
 			        break;
 			case 11:
@@ -349,8 +355,6 @@ void printInstrucao(Decod *decod) {
 	}
 }
 
-// funcao para implementacao da unidade de controle
-
 // funcao para conversao das instrucoes para assembly e salvar "arquivo.asm"
 void salvarAssembly(char mi[256][17]) {
 	char arquivo[20];
@@ -434,7 +438,7 @@ void inicia_pilha(Stack *stack) {
 	stack->topo=NULL;
 }
 
-// salva registradores, memoria de instrucoes e pc na pilha
+// salva registradores, memoria de dados e pc na pilha
 void empilha(Stack *stack,Reg *reg, int *md) {
 	Nodo *nNodo = (Nodo*)malloc(sizeof(Nodo));
 	int i;
@@ -481,4 +485,26 @@ int limite_back(Stack *stack) {
 		printf("\nVoce voltou ao inicio!");
 		return 1;
 	}
+}
+
+void executa_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md, Stack *stack, Sinais *sinais) {
+	if(strcmp(mi[reg->pc], "0000000000000000") == 0) {
+		printf("########## EXECUCAO CONCLUIDA! ##########\n");
+		return;
+	} else {
+		escreve_br(&reg->br[reg->mem_wb[0]], MemReg(reg->mem_wb[1], reg->mem_wb[2], sinais->MemParaReg),sinais->EscReg);
+	}
+}
+
+int MemReg(int op2, int op1, int MemParaReg) {
+    switch (MemParaReg) {
+        case 0: return op1;
+        case 1: return op2;
+    }
+}
+
+void escreve_br(int *reg, int dado, int EscReg) {
+    if(EscReg == 1) {
+        *reg = dado;
+    }
 }
