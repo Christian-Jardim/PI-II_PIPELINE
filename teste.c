@@ -22,10 +22,10 @@ typedef struct sinais {
 typedef struct registradores {
 	int pc,
 	    br[8],
-	    if_id[18],
+	    if_id[17],
 	    id_ex[16],
 	    ex_mem[8],
-	    mem_wb[6];
+	    mem_wb[5];
 } Reg;
 
 //STRUCTS e ENUMS
@@ -58,9 +58,13 @@ typedef struct decodificador {
 } Decod;
 
 typedef struct Nodo {
-	int br[8],
-	    md[256],
-	    pc;
+	int pc,
+	    br[8],
+	    if_id[17],
+	    id_ex[16],
+	    ex_mem[8],
+	    mem_wb[5],
+	    md[256];
 	struct Nodo *prox;
 } Nodo;
 
@@ -445,7 +449,19 @@ void empilha(Stack *stack,Reg *reg, int *md) {
 	for(i=0; i<8; i++) {
 		nNodo->br[i]=reg->br[i];
 	}
+	for(i=0; i<17; i++) {
+		nNodo->if_id[i]=reg->if_id[i];
+	}
+	for(i=0; i<16; i++) {
+		nNodo->id_ex[i]=reg->id_ex[i];
+	}
 	for(i=0; i<8; i++) {
+		nNodo->ex_mem[i]=reg->ex_mem[i];
+	}
+	for(i=0; i<6; i++) {
+		nNodo->mem_wb[i]=reg->mem_wb[i];
+	}
+	for(i=0; i<256; i++) {
 		nNodo->md[i]=md[i];
 	}
 	nNodo->pc=reg->pc;
@@ -492,19 +508,22 @@ void executa_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md
 		printf("########## EXECUCAO CONCLUIDA! ##########\n");
 		return;
 	} else {
+
 		escreve_br(&reg->br[reg->mem_wb[0]], MemReg(reg->mem_wb[1], reg->mem_wb[2], reg->mem_wb[4]), reg->mem_wb[3]);
 	}
 }
 
 int MemReg(int op2, int op1, int MemParaReg) {
-    switch (MemParaReg) {
-        case 0: return op1;
-        case 1: return op2;
-    }
+	switch (MemParaReg) {
+	case 0:
+		return op1;
+	case 1:
+		return op2;
+	}
 }
 
 void escreve_br(int *reg, int dado, int EscReg) {
-    if(EscReg == 1) {
-        *reg = dado;
-    }
+	if(EscReg == 1) {
+		*reg = dado;
+	}
 }
