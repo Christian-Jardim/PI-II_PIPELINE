@@ -58,9 +58,9 @@ typedef struct decodificador {
 } Decod;
 
 typedef struct ULA_Out {
-        int resultado,
-            flag_zero,
-            overflow;
+	int resultado,
+	    flag_zero,
+	    overflow;
 } ULA_Out;
 
 typedef struct Nodo {
@@ -103,7 +103,7 @@ int somador(int op1, int op2);
 void salvarAssembly(char mi[256][17]);
 void salvarMemDados(int *md);
 
-void executa_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md, Stack *stack, Sinais *sinais, ULA_Out *ula_out);
+void executa_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md, Stack *stack, Sinais *sinais);
 
 void escreve_br(int *reg, int dado, int EscReg);
 
@@ -117,7 +117,7 @@ int main() {
 	Decod decod;
 	Stack stack;
 	Reg reg;
-ULA_Out ula_out;
+	ULA_Out ula_out;
 	MI;
 	MD;
 
@@ -161,7 +161,7 @@ ULA_Out ula_out;
 
 			break;
 		case 9:
-			executa_ciclo(mi, &inst, &decod, &reg, md, &stack, &sinais);
+			executa_ciclo(mi, &inst, &decod, &reg, md, &stack, &sinais, &ula_out);
 			break;
 			/*case 10:
 			        step_back(&stack,&reg,md);
@@ -515,8 +515,16 @@ void executa_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md
 		printf("########## EXECUCAO CONCLUIDA! ##########\n");
 		return;
 	} else {
-
+        empilha(stack,reg,md);
+        
 		escreve_br(&reg->br[reg->mem_wb[0]], MemReg(reg->mem_wb[1], reg->mem_wb[2], reg->mem_wb[4]), reg->mem_wb[3]);
+		
+		reg->mem_wb[0] = reg->ex_mem[0];
+		reg->mem_wb[1] = ula_out->resultado;
+		reg->mem_wb[2] = md[ula_out->resultado];
+		reg->mem_wb[3] = reg->ex_mem[4];
+		reg->mem_wb[4] = reg->ex_mem[5];
+		
 	}
 }
 
