@@ -6,17 +6,17 @@
 #define MD int md[256] = {0}
 
 typedef struct sinais {
-	int EscPC,
-	    EscMem,
-	    EscRI,
+	int Esc_PC,
 	    RegDest,
-	    MemParaReg,
-	    EscReg,
-	    ULAFontA,
-	    ULAFontB,
-	    ControleULA,
-	    FontePC,
-	    Branch;
+	    ULA_Op2,
+	    ULA_Op1,
+	    ULA_Op0,
+	    ULA_Fonte,
+	    DC,
+	    DI,
+	    Esc_Mem,
+	    Esc_Reg,
+	    Mem_Para_Reg;
 } Sinais;
 
 typedef struct registradores {
