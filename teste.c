@@ -78,7 +78,7 @@ typedef struct pilha {
 	Nodo *topo;
 } Stack;
 
-//ASSINATURA DAS FUNCOESvoid
+//ASSINATURA DAS FUNCOES
 void menu();
 
 int carregaMemInst(char mi[256][17]);
@@ -106,9 +106,11 @@ void salvarMemDados(int *md);
 void executa_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md, Stack *stack, Sinais *sinais);
 
 void escreve_br(int *reg, int dado, int EscReg);
+void escreve_md(int *index, int dado, int EscMem);
 
 //MUX
 int MemReg(int op2, int op1, int MemParaReg);
+int RegDest(int op2, int op1, int Reg_Dest);
 
 // PROGRAMA PRINCIPAL
 int main() {
@@ -121,7 +123,7 @@ int main() {
 	MI;
 	MD;
 
-	//inicia_pilha(&stack);
+	inicia_pilha(&stack);
 
 	int op, nl, resul;
 	reg.pc = 0;
@@ -163,13 +165,12 @@ int main() {
 		case 9:
 			executa_ciclo(mi, &inst, &decod, &reg, md, &stack, &sinais, &ula_out);
 			break;
-			/*case 10:
-			        step_back(&stack,&reg,md);
-			        break;
-			case 11:
-			        printf("Voce saiu!!!");
-			        break;
-			        */
+		case 10:
+			step_back(&stack,&reg,md);
+				break;
+		case 11:
+			printf("Voce saiu!!!");
+			break;
 		}
 	} while(op != 11);
 	return 0;
@@ -520,10 +521,15 @@ void executa_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md
 		escreve_br(&reg->br[reg->mem_wb[0]], MemReg(reg->mem_wb[1], reg->mem_wb[2], reg->mem_wb[4]), reg->mem_wb[3]);
 		
 		reg->mem_wb[0] = reg->ex_mem[0];
-		reg->mem_wb[1] = ula_out->resultado;
+		reg->mem_wb[1] = reg->ex_mem[2];
 		reg->mem_wb[2] = md[ula_out->resultado];
 		reg->mem_wb[3] = reg->ex_mem[4];
 		reg->mem_wb[4] = reg->ex_mem[5];
+
+		escreve_md(&md[reg->ex_mem[2], reg->ex_mem[1], reg->ex_mem[3]);
+
+		reg->ex_mem[0] = RegDest(reg->id_ex[0], reg->id_ex[1], reg->id_ex[8]);
+		reg->ex_mem[1] =reg->id_ex[4];
 		
 	}
 }
@@ -537,8 +543,23 @@ int MemReg(int op2, int op1, int MemParaReg) {
 	}
 }
 
+int RegDest(int op2, int op1, int Reg_Dest) {
+	switch (Reg_Dest) {
+	case 0:
+		return op1;
+	case 1:
+		return op2;
+	}
+}
+
 void escreve_br(int *reg, int dado, int EscReg) {
 	if(EscReg == 1) {
 		*reg = dado;
 	}
 }
+
+void escreve_md(int *index, int dado, int EscMem) {
+	if(EscMem == 1) {
+		*index = dado;
+	}
+} 
