@@ -120,7 +120,7 @@ int main() {
 	Inst inst;
 	Decod decod;
 	Stack stack;
-	Reg reg;
+	Reg reg = {0};
 	ULA_Out ula_out;
 	MI;
 	MD;
@@ -559,6 +559,12 @@ void executa_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md
 		decodificarInstrucao(mi[reg->pc], inst, decod);
 
 		reg->if_id[17] = somador(reg->pc,1);
+		char inst[17];
+		inst[17] = "/0";
+		strcpy(inst,mi[reg->pc]);
+		for(int i=0;i<16;i++){
+		    reg->if_id[i] = atoi(inst[i]);
+		}
 
 	}
 }
@@ -620,15 +626,15 @@ void controle(int opcode, int funct, Sinais *sinais) {
 		sinais->MemParaReg = 0;
 	}
 	else if(opcode == 15) {
-	    sinais->EscPC = 0;
-	    sinais->RegDest = 0;
-	    sinais->ULAOp = 0;
-	    sinais->ULAFonte = 1;
-	    sinais->DC = 0;
-	    sinais->DI = 0;
-	    sinais->EscMem = 1;
-	    sinais->EscReg = 0;
-	    sinais->MemParaReg = 0;
+		sinais->EscPC = 0;
+		sinais->RegDest = 0;
+		sinais->ULAOp = 0;
+		sinais->ULAFonte = 1;
+		sinais->DC = 0;
+		sinais->DI = 0;
+		sinais->EscMem = 1;
+		sinais->EscReg = 0;
+		sinais->MemParaReg = 0;
 	}
 }
 
