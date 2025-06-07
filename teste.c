@@ -103,6 +103,7 @@ void salvarAssembly(char mi[256][17]);
 void salvarMemDados(int *md);
 
 void executa_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md, Stack *stack, Sinais *sinais, ULA_Out *ula_out);
+void controle(int opcode, int funct, Sinais *sinais);
 
 void escreve_br(int *reg, int dado, int EscReg);
 void escreve_md(int *index, int dado, int EscMem);
@@ -554,11 +555,80 @@ void executa_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md
 		reg->id_ex[12] = sinais->EscReg;
 		reg->id_ex[13] = sinais->MemParaReg;
 		//controle(decod->opcode, decod->funct);
-		escreve_pc(&reg->pc,if_id[17],sinais->EscPC);
+		escreve_pc(&reg->pc,reg->if_id[17],sinais->EscPC);
 		decodificarInstrucao(mi[reg->pc], inst, decod);
-		
-		if_id[17] = somador(reg->pc,1);
-		
+
+		reg->if_id[17] = somador(reg->pc,1);
+
+	}
+}
+
+void controle(int opcode, int funct, Sinais *sinais) {
+	if(opcode == 0) {
+		sinais->EscPC = 1;
+		sinais->RegDest = 1;
+		sinais->ULAOp = funct;
+		sinais->ULAFonte = 0;
+		sinais->DC = 0;
+		sinais->DI = 0;
+		sinais->EscMem = 0;
+		sinais->EscReg = 1;
+		sinais->MemParaReg = 1;
+	}
+	else if(opcode == 2) {
+		sinais->EscPC = 1;
+		sinais->RegDest = 0;
+		sinais->ULAOp = 0;
+		sinais->ULAFonte = 0;
+		sinais->DC = 0;
+		sinais->DI = 1;
+		sinais->EscMem = 0;
+		sinais->EscReg = 0;
+		sinais->MemParaReg = 0;
+	}
+	else if(opcode == 4) {
+		sinais->EscPC = 1;
+		sinais->RegDest = 1;
+		sinais->ULAOp = 0;
+		sinais->ULAFonte = 1;
+		sinais->DC = 0;
+		sinais->DI = 0;
+		sinais->EscMem = 0;
+		sinais->EscReg = 1;
+		sinais->MemParaReg = 1;
+	}
+	else if(opcode == 8) {
+		sinais->EscPC = 1;
+		sinais->RegDest = 0;
+		sinais->ULAOp = funct;
+		sinais->ULAFonte = 0;
+		sinais->DC = 1;
+		sinais->DI = 0;
+		sinais->EscMem = 0;
+		sinais->EscReg = 0;
+		sinais->MemParaReg = 0;
+	}
+	else if(opcode == 11) {
+		sinais->EscPC = 1;
+		sinais->RegDest = 0;
+		sinais->ULAOp = 0;
+		sinais->ULAFonte = 1;
+		sinais->DC = 0;
+		sinais->DI = 0;
+		sinais->EscMem = 0;
+		sinais->EscReg = 1;
+		sinais->MemParaReg = 0;
+	}
+	else if(opcode == 15) {
+	    sinais->EscPC = 0;
+	    sinais->RegDest = 0;
+	    sinais->ULAOp = 0;
+	    sinais->ULAFonte = 1;
+	    sinais->DC = 0;
+	    sinais->DI = 0;
+	    sinais->EscMem = 1;
+	    sinais->EscReg = 0;
+	    sinais->MemParaReg = 0;
 	}
 }
 
