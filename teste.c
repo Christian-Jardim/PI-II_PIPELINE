@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ncurses.h>
 
 #define MI char mi[256][17] = {{'\0'}}
 #define MD int md[256] = {0}
@@ -82,7 +83,7 @@ typedef struct pilha {
 } Stack;
 
 //ASSINATURA DAS FUNCOES
-void menu();
+int menu();
 
 int carregaMemInst(char mi[256][17]);
 void carregarMemoriaDados(int md[256]);
@@ -136,47 +137,59 @@ int main() {
 	reg.pc = 0;
 
 	do {
-		menu();
-		printf("Sua escolha: ");
-		scanf("%d", &op);
+		//menu();
+		//printf("Sua escolha: ");
+		//scanf("%d", &op);
+		op = menu();
+		printf("Você escolheu a opção: %d\n", op);
 		printf("\n");
 		switch (op) {
 		case 1:
 			carregaMemInst(mi);
+			getchar();
 			break;
 		case 2:
 			carregarMemoriaDados(md);
+			getchar();
 			break;
 		case 3:
 			printMemory(mi, &inst, &decod);
 			printmemory(md);
+			getchar();
 			break;
 		case 4:
 			printReg(&reg);
+			printf("\n");
+			getchar();
 			break;
 		case 5:
 			printMemory(mi, &inst, &decod);
 			printmemory(md);
 			printReg(&reg);
 			printf("\n\nPC: %d", reg.pc);
+			getchar();
 			break;
 		case 6:
 			salvarAssembly(mi);
+			getchar();
 			break;
 		case 7:
 			salvarMemDados(md);
+			getchar();
 			break;
 		case 8:
 
 			break;
 		case 9:
 			executa_ciclo(mi, &inst, &decod, &reg, md, &stack, &sinais, &ula_out);
+			getchar();
 			break;
 		case 10:
 			step_back(&stack,&reg,md);
+			getchar();
 			break;
 		case 11:
-			printf("Voce saiu!!!");
+			printf("Voce saiu!!!\n");
 			break;
 		}
 	} while(op != 11);
@@ -186,19 +199,65 @@ int main() {
 //FUNCOES IMPLEMENTADAS
 
 //MENU
-void menu() {
-	printf("\n\n *** MENU *** \n");
-	printf("1 - Carregar memoria de instrucoes\n");
-	printf("2 - Carregar memoria de dados\n");
-	printf("3 - Imprimir memorias\n");
-	printf("4 - Imprimir banco de registradores\n");
-	printf("5 - Imprimir todo o simulador\n");
-	printf("6 - Salvar .asm\n");
-	printf("7 - Salvar .dat\n");
-	printf("8 - Executar programa\n");
-	printf("9 - Executar instrucao\n");
-	printf("10 - Volta uma instrucao\n");
-	printf("11 - Sair\n\n");
+int menu() {
+    initscr();              // Inicia ncurses
+    noecho();               // Não exibe teclas digitadas
+    cbreak();               // Leitura imediata de teclas
+    curs_set(0);            // Oculta o cursor
+    keypad(stdscr, TRUE);   // Habilita teclas especiais como setas
+
+    const char *opcoes[] = {
+        "1 - Carregar memoria de instrucoes",
+        "2 - Carregar memoria de dados",
+        "3 - Imprimir memorias",
+        "4 - Imprimir banco de registradores",
+        "5 - Imprimir todo o simulador",
+        "6 - Salvar .asm",
+        "7 - Salvar .dat",
+        "8 - Executar programa",
+        "9 - Executar instrucao",
+        "10 - Volta uma instrucao",
+        "11 - Sair"
+    };
+    int n_opcoes = sizeof(opcoes) / sizeof(opcoes[0]);
+    int escolha = 0;
+
+    int yMax, xMax;
+    getmaxyx(stdscr, yMax, xMax);
+
+    WINDOW *menuwin = newwin(n_opcoes + 4, 50, (yMax - n_opcoes) / 2, (xMax - 50) / 2);
+    box(menuwin, 0, 0);
+    keypad(menuwin, TRUE);
+
+    int ch;
+    while (1) {
+        // Título
+        mvwprintw(menuwin, 1, 18, "*** MENU ***");
+
+        // Imprimir opções
+        for (int i = 0; i < n_opcoes; i++) {
+            if (i == escolha)
+                wattron(menuwin, A_REVERSE); // Destaque
+            mvwprintw(menuwin, i + 2, 2, "%s", opcoes[i]);
+            wattroff(menuwin, A_REVERSE);
+        }
+
+        wrefresh(menuwin);
+
+        ch = wgetch(menuwin);
+        switch (ch) {
+            case KEY_UP:
+                escolha = (escolha - 1 + n_opcoes) % n_opcoes;
+                break;
+            case KEY_DOWN:
+                escolha = (escolha + 1) % n_opcoes;
+                break;
+            case 10: // Enter
+                delwin(menuwin);
+                endwin();
+                return escolha + 1; // retorna a opção escolhida (1 a 11)
+        }
+    }
 }
 
 // carrega memoria de instrucoes a partir de um "arquivo.mem"
