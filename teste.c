@@ -44,10 +44,10 @@ typedef struct id_ex {
 typedef struct registradores {
         int pc,
             br[8],
-            id_ex[16],
             ex_mem[8],
             mem_wb[5];
         IF_ID if_id;
+ID_EX id_ex;
 } Reg;
 
 //STRUCTS e ENUMS
