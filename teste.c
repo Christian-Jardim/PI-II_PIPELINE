@@ -83,14 +83,14 @@ typedef struct pilha {
 } Stack;
 
 //ASSINATURA DAS FUNCOES
-int menu(WINDOW *menuwin);
+int menu();
 
 int carregaMemInst(char mi[256][17]);
 void carregarMemoriaDados(int md[256]);
 
 void printMemory(char mi[256][17], Inst *inst, Decod *decod);
 void printmemory(int *md);
-void printReg(Reg *reg, WINDOW *regwin);
+void printReg(Reg *reg);
 void printInstrucao(Decod *decod);
 
 void decodificarInstrucao(const char *bin, Inst *inst, Decod *decod);
@@ -122,26 +122,6 @@ int ULAFonte(int b, int imm, int ULAFonte);
 
 // PROGRAMA PRINCIPAL
 int main() {
-	
-	//==================================================================
-	// controle ncurses, inicializacao das janelas
-	initscr();              // Inicia ncurses
-    	noecho();               // Não exibe teclas digitadas
-    	cbreak();               // Leitura imediata de teclas
-    	curs_set(0);            // Oculta o cursor
-    	keypad(stdscr, TRUE);   // Habilita teclas especiais como setas
-    
-    	int yMax, xMax;
-    	getmaxyx(stdscr, yMax, xMax);
-
-    	// Janela do menu (largura 50, altura suficiente para opções)
-    	WINDOW *menuwin = newwin(16, 50, (yMax - 16) / 2, 0);
-    	keypad(menuwin, TRUE);
-
-    	// Janela dos registradores ao lado do menu
-    	WINDOW *regwin = newwin(15, 40, (yMax - 15) / 2, 52);
-	//==================================================================
-	
 	Sinais sinais;
 	Inst inst;
 	Decod decod;
@@ -157,8 +137,11 @@ int main() {
 	reg.pc = 0;
 
 	do {
-		op = menu(menuwin);
-		printf("\n\nVocê escolheu a opção: %d\n", op);
+		//menu();
+		//printf("Sua escolha: ");
+		//scanf("%d", &op);
+		op = menu();
+		printf("Você escolheu a opção: %d\n", op);
 		printf("\n");
 		switch (op) {
 		case 1:
@@ -175,15 +158,14 @@ int main() {
 			getchar();
 			break;
 		case 4:
-			printReg(&reg, regwin);
+			printReg(&reg);
+			printf("\n");
 			getchar();
-			werase(regwin);      // Limpa a janela
-			wrefresh(regwin);    // Atualiza com o conteúdo limpo
 			break;
 		case 5:
 			printMemory(mi, &inst, &decod);
 			printmemory(md);
-			printReg(&reg, regwin);
+			printReg(&reg);
 			printf("\n\nPC: %d", reg.pc);
 			getchar();
 			break;
@@ -211,17 +193,19 @@ int main() {
 			break;
 		}
 	} while(op != 11);
-	
-	delwin(menuwin);
-    delwin(regwin);
-    endwin();
 	return 0;
 }
 
 //FUNCOES IMPLEMENTADAS
 
 //MENU
-int menu(WINDOW *menuwin) {
+int menu() {
+    initscr();              // Inicia ncurses
+    noecho();               // Não exibe teclas digitadas
+    cbreak();               // Leitura imediata de teclas
+    curs_set(0);            // Oculta o cursor
+    keypad(stdscr, TRUE);   // Habilita teclas especiais como setas
+
     const char *opcoes[] = {
         "1 - Carregar memoria de instrucoes",
         "2 - Carregar memoria de dados",
@@ -237,17 +221,23 @@ int menu(WINDOW *menuwin) {
     };
     int n_opcoes = sizeof(opcoes) / sizeof(opcoes[0]);
     int escolha = 0;
+
+    int yMax, xMax;
+    getmaxyx(stdscr, yMax, xMax);
+
+    WINDOW *menuwin = newwin(n_opcoes + 4, 50, (yMax - n_opcoes) / 2, (xMax - 50) / 2);
+    box(menuwin, 0, 0);
+    keypad(menuwin, TRUE);
+
     int ch;
-
     while (1) {
-        werase(menuwin);        // Limpa só a janela do menu
-        box(menuwin, 0, 0);     // Borda
-
+        // Título
         mvwprintw(menuwin, 1, 18, "*** MENU ***");
 
+        // Imprimir opções
         for (int i = 0; i < n_opcoes; i++) {
             if (i == escolha)
-                wattron(menuwin, A_REVERSE);
+                wattron(menuwin, A_REVERSE); // Destaque
             mvwprintw(menuwin, i + 2, 2, "%s", opcoes[i]);
             wattroff(menuwin, A_REVERSE);
         }
@@ -262,8 +252,10 @@ int menu(WINDOW *menuwin) {
             case KEY_DOWN:
                 escolha = (escolha + 1) % n_opcoes;
                 break;
-            case 10:  // Enter
-                return escolha + 1;
+            case 10: // Enter
+                delwin(menuwin);
+                endwin();
+                return escolha + 1; // retorna a opção escolhida (1 a 11)
         }
     }
 }
@@ -362,20 +354,10 @@ void printmemory(int *md) {
 }
 
 // imprime banco de registradores
-void printReg(Reg *reg, WINDOW *regwin) {
-    werase(regwin);
-    box(regwin, 0, 0);
-
-    mvwprintw(regwin, 1, 2, "BANCO DE REGISTRADORES");
-
-    for (int i = 0; i < 8; i++) {
-        mvwprintw(regwin, i + 3, 2, "REGISTRADOR [%d] = %d", i, reg->br[i]);
-    }
-
-    mvwprintw(regwin, 13, 2, "Pressione qualquer tecla...");
-    wrefresh(regwin);
-
-    wgetch(regwin);
+void printReg(Reg *reg) {
+	for(int i=0; i<8; i++) {
+		printf("\nREGISTRADOR [%d] - %d", i, reg->br[i]);
+	}
 }
 
 // decodifica a instrucao e armazena os valores na struct do tipo Deco ja no formato int
@@ -596,10 +578,10 @@ int limite_back(Stack *stack) {
 }
 
 void executa_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md, Stack *stack, Sinais *sinais, ULA_Out *ula_out) {
-	if(strcmp(mi[reg->pc], "0000000000000000") == 0) {
+	/*if(strcmp(mi[reg->pc], "0000000000000000") == 0) {
 		printf("########## EXECUCAO CONCLUIDA! ##########\n");
 		return;
-	} else {
+	} else {*/
 	int num_pc;
 	char char_pc;
 
