@@ -19,17 +19,35 @@ typedef struct sinais {
 } Sinais;
 
 typedef struct if_id {
-	int pc;
-	char inst[17];
+        int pc;
+        char inst[17];
 } IF_ID;
 
+
+typedef struct id_ex {
+    int memreg,
+       escreg,
+       branch,
+       jump,
+       escmem,
+       regdest,
+       ulafonte,
+       opula,
+       a,
+       b,
+       imm,
+       pc,
+       rs,
+       rt;
+} ID_EX;
+
 typedef struct registradores {
-	int pc,
-	    br[8],
-	    id_ex[16],
-	    ex_mem[8],
-	    mem_wb[5];
-	IF_ID if_id;
+        int pc,
+            br[8],
+            id_ex[16],
+            ex_mem[8],
+            mem_wb[5];
+        IF_ID if_id;
 } Reg;
 
 //STRUCTS e ENUMS
