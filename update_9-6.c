@@ -607,32 +607,6 @@ void executa_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md
 
 	empilha(stack, reg, md);
 
-	// busca
-	strcpy(reg->if_id.inst, mi[reg->pc]);
-	reg->if_id.pc = reg->pc + 1;
-	printf("Instrucao buscada: %s\n", reg->if_id.inst);
-
-	// decodifica
-	decodificarInstrucao(reg->if_id.inst, inst, decod);
-	controle(decod->opcode, decod->funct, sinais);
-
-	// executa
-	int dadoA = reg->br[decod->rs];
-	int dadoB = reg->br[decod->rt];
-	int entradaB = ULAFonte(dadoB, decod->imm, sinais->ULAFonte);
-	ULA(dadoA, entradaB, sinais->ULAOp, ula_out);
-
-	// acessa memoria
-	int dado_mem = 0;
-	if (sinais->EscMem == 1) {
-		md[ula_out->resultado] = dadoB;
-		printf("MemC3ria[%d] = %d\n", ula_out->resultado, dadoB);
-	}
-	if (decod->opcode == 11) {
-		dado_mem = md[ula_out->resultado];
-		printf("Dado lido da MemC3ria[%d]: %d\n", ula_out->resultado, dado_mem);
-	}
-
 	// escreve no banco de registradores
 	if (sinais->EscReg == 1) {
 		int destino = RegDest(decod->rd, decod->rt, sinais->RegDest);
@@ -644,15 +618,40 @@ void executa_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md
 	if (sinais->DI == 1) {
 		reg->pc = decod->addr;
 	}
-
 	if (sinais->DC == 1 && ula_out->flag_zero == 1) {
 		reg->pc = reg->pc + decod->imm;
 	}
 	if (sinais->EscPC == 1) {
 		reg->pc++;
 	}
+	
+	// acessa memoria
+	int dado_mem = 0;
+	if (sinais->EscMem == 1) {
+		md[ula_out->resultado] = dadoB;
+		printf("MemC3ria[%d] = %d\n", ula_out->resultado, dadoB);
+	}
+	if (decod->opcode == 11) {
+		dado_mem = md[ula_out->resultado];
+		printf("Dado lido da MemC3ria[%d]: %d\n", ula_out->resultado, dado_mem);
+	} 
 
+	// executa
+	int dadoA = reg->br[decod->rs];
+	int dadoB = reg->br[decod->rt];
+	int entradaB = ULAFonte(dadoB, decod->imm, sinais->ULAFonte);
+	ULA(dadoA, entradaB, sinais->ULAOp, ula_out); 
+	
+	// decodifica
+	decodificarInstrucao(reg->if_id.inst, inst, decod);
+	controle(decod->opcode, decod->funct, sinais);
 	printf("PC: %d\n", reg->pc);
+	
+	// busca
+	strcpy(reg->if_id.inst, mi[reg->pc]);
+	reg->if_id.pc = somador(reg->pc, 1);
+	printf("Instrucao buscada: %s\n", reg->if_id.inst);
+ 
 }
 
 
