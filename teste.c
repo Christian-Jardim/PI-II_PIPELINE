@@ -70,11 +70,12 @@ typedef struct ULA_Out {
 typedef struct Nodo {
 	int pc,
 	    br[8],
-	    if_id[17],
-	    id_ex[14],
+	    id_ex[16],
 	    ex_mem[8],
 	    mem_wb[5],
-	    md[256];
+	    md[256],
+	    if_id_pc;
+	char if_id_inst[17];
 	struct Nodo *prox;
 } Nodo;
 
@@ -516,53 +517,65 @@ void inicia_pilha(Stack *stack) {
 	stack->topo=NULL;
 }
 
-/* salva registradores, memoria de dados e pc na pilha
-void empilha(Stack *stack,Reg *reg, int *md) {
+//salva registradores, memoria de dados e pc na pilha
+void empilha(Stack *stack, Reg *reg, int *md) {
 	Nodo *nNodo = (Nodo*)malloc(sizeof(Nodo));
-	int i;
-	for(i=0; i<8; i++) {
-		nNodo->br[i]=reg->br[i];
+
+	for (int i = 0; i < 8; i++) {
+		nNodo->br[i] = reg->br[i];
 	}
-	for(i=0; i<17; i++) {
-		nNodo->if_id[i]=reg->if_id[i];
+	for (int i = 0; i < 16; i++) {
+		nNodo->id_ex[i] = reg->id_ex[i];
 	}
-	for(i=0; i<14; i++) {
-		nNodo->id_ex[i]=reg->id_ex[i];
+	for (int i = 0; i < 8; i++) {
+		nNodo->ex_mem[i] = reg->ex_mem[i];
 	}
-	for(i=0; i<8; i++) {
-		nNodo->ex_mem[i]=reg->ex_mem[i];
+	for (int i = 0; i < 5; i++) {
+		nNodo->mem_wb[i] = reg->mem_wb[i];
 	}
-	for(i=0; i<6; i++) {
-		nNodo->mem_wb[i]=reg->mem_wb[i];
+	for (int i = 0; i < 256; i++) {
+		nNodo->md[i] = md[i];
 	}
-	for(i=0; i<256; i++) {
-		nNodo->md[i]=md[i];
-	}
-	nNodo->pc=reg->pc;
-	nNodo->prox=stack->topo;
-	stack->topo=nNodo;
-}*/
+
+	strcpy(nNodo->if_id_inst, reg->if_id.inst);
+	nNodo->if_id_pc = reg->if_id.pc;
+
+	nNodo->pc = reg->pc;
+
+	nNodo->prox = stack->topo;
+	stack->topo = nNodo;
+}
+
 
 // funcao de execucao do step back
 int step_back(Stack *stack, Reg *reg, int *md) {
-	int i;
+	Nodo *remover = stack->topo;
 
-	if(limite_back(stack) == 1) {
-		return 1;
-	} else {
-		Nodo *remover = stack->topo;
-		for(i = 0; i < 8; i++) {
-			reg->br[i] = remover->br[i];
-		}
-		for(i = 0; i < 8; i++) {
-			md[i] = remover->md[i];
-		}
-		reg->pc = remover->pc;
-		stack->topo = remover->prox;
-		free(remover);
-		return 0;
+	for (int i = 0; i < 8; i++) {
+		reg->br[i] = remover->br[i];
 	}
+	for (int i = 0; i < 16; i++) {
+		reg->id_ex[i] = remover->id_ex[i];
+	}
+	for (int i = 0; i < 8; i++) {
+		reg->ex_mem[i] = remover->ex_mem[i];
+	}
+	for (int i = 0; i < 5; i++) {
+		reg->mem_wb[i] = remover->mem_wb[i];
+	}
+	for (int i = 0; i < 256; i++) {
+		md[i] = remover->md[i];
+	}
+
+	strcpy(reg->if_id.inst, remover->if_id_inst);
+	reg->if_id.pc = remover->if_id_pc;
+	reg->pc = remover->pc;
+
+	stack->topo = remover->prox;
+	free(remover);
+	return 0;
 }
+
 
 // somador
 int somador(int op1, int op2) {
@@ -577,58 +590,63 @@ int limite_back(Stack *stack) {
 	}
 }
 
-void executa_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md, Stack *stack, Sinais *sinais, ULA_Out *ula_out) {
-	/*if(strcmp(mi[reg->pc], "0000000000000000") == 0) {
-		printf("########## EXECUCAO CONCLUIDA! ##########\n");
-		return;
-	} else {*/
-	int num_pc;
-	char char_pc;
+void executa_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md, Stack *stack, Sinais *sinais, ULA_Out *ula_out){
+    
+    if (strcmp(mi[reg->pc], "0000000000000000") == 0){
+        printf("########## EXECUÇÃO CONCLUÍDA! ##########\n");
+        return 1;
+    }
+    
+    empilha(stack, reg, md);
 
-	//empilha(stack,reg,md);
+    // busca
+    strcpy(reg->if_id.inst, mi[reg->pc]);
+    reg->if_id.pc = reg->pc + 1;
+    printf("Instrucao buscada: %s\n", reg->if_id.inst);
 
-	escreve_br(&reg->br[reg->mem_wb[0]], MemReg(reg->mem_wb[1], reg->mem_wb[2], reg->mem_wb[4]), reg->mem_wb[3]);
+    // decodifica
+    decodificarInstrucao(reg->if_id.inst, inst, decod);
+    controle(decod->opcode, decod->funct, sinais);
 
-	reg->mem_wb[0] = reg->ex_mem[0];
-	reg->mem_wb[1] = reg->ex_mem[2];
-	reg->mem_wb[2] = reg->ex_mem[2];
-	reg->mem_wb[3] = reg->ex_mem[4];
-	reg->mem_wb[4] = reg->ex_mem[5];
+    // executa
+    int dadoA = reg->br[decod->rs];
+    int dadoB = reg->br[decod->rt];
+    int entradaB = ULAFonte(dadoB, decod->imm, sinais->ULAFonte);
+    ULA(dadoA, entradaB, sinais->ULAOp, ula_out);
 
-	escreve_md(&md[reg->ex_mem[2]], reg->ex_mem[1], reg->ex_mem[3]);
+    // acessa memoria
+    int dado_mem = 0;
+    if (sinais->EscMem == 1){
+        md[ula_out->resultado] = dadoB;
+        printf("Memória[%d] = %d\n", ula_out->resultado, dadoB);
+    }
+    if (decod->opcode == 11){
+        dado_mem = md[ula_out->resultado];
+        printf("Dado lido da Memória[%d]: %d\n", ula_out->resultado, dado_mem);
+    }
 
-	reg->ex_mem[0] = RegDest(reg->id_ex[0], reg->id_ex[1], reg->id_ex[8]);
-	reg->ex_mem[1] = reg->id_ex[4];
-	ULA(reg->id_ex[5], ULAFonte(reg->id_ex[3], reg->id_ex[4], reg->id_ex[7]), reg->ex_mem[6], ula_out);
-	reg->ex_mem[2] = ula_out->resultado;
-	reg->ex_mem[3] = reg->id_ex[9];
-	reg->ex_mem[4] = reg->id_ex[10];
-	reg->ex_mem[5] = reg->id_ex[11];
-	reg->ex_mem[6] = reg->id_ex[12];
-	reg->ex_mem[7] = reg->id_ex[13];
+    // escreve no banco de registradores
+    if (sinais->EscReg == 1) {
+        int destino = RegDest(decod->rd, decod->rt, sinais->RegDest);
+        int dado_final = MemReg(ula_out->resultado, dado_mem, sinais->MemParaReg);
+        reg->br[destino] = dado_final;
+        printf("Registrador[%d] = %d\n", destino, dado_final);
+    }
 
-	reg->id_ex[0] = decod->rd;
-	reg->id_ex[1] = decod->rs;
-	reg->id_ex[2] = reg->if_id.pc;
-	reg->id_ex[3] = decod->imm;
-	reg->id_ex[4] = reg->br[decod->rt];
-	reg->id_ex[5] = reg->br[decod->rs];
-	reg->id_ex[6] = sinais->ULAOp;
-	reg->id_ex[7] = sinais->ULAFonte;
-	reg->id_ex[8] = sinais->RegDest;
-	reg->id_ex[9] = sinais->EscMem;
-	reg->id_ex[10] = sinais->DI;
-	reg->id_ex[11] = sinais->DC;
-	reg->id_ex[12] = sinais->EscReg;
-	reg->id_ex[13] = sinais->MemParaReg;
-	controle(decod->opcode, decod->funct, sinais);
-	escreve_pc(&reg->pc,reg->if_id.pc,sinais->EscPC);
-	decodificarInstrucao(reg->if_id.inst, inst, decod);
+    if (sinais->DI == 1){
+        reg->pc = decod->addr;
+    }
+    
+    if (sinais->DC == 1 && ula_out->flag_zero == 1){
+        reg->pc = reg->pc + decod->imm;
+    }
+    if (sinais->EscPC == 1){
+        reg->pc++;
+    }
 
-	strcpy(reg->if_id.inst, mi[reg->pc]);
-	reg->if_id.pc = somador(reg->pc,1);
-//}
+    printf("PC: %d\n", reg->pc);
 }
+
 
 void controle(int opcode, int funct, Sinais *sinais) {
 	if(opcode == 0) {
