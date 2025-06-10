@@ -599,9 +599,7 @@ int limite_back(Stack *stack) {
 
 void executa_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md, Stack *stack, Sinais *sinais, ULA_Out *ula_out) {
 
-    int dado_mem = 0;
-    int dadoA = reg->br[decod->rs];
-  int dadoB = reg->br[decod->rt];
+  int dado_mem = 0, dadoA = reg->br[decod->rs], dadoB = reg->br[decod->rt], destino, dado_final, entrada B;
 
   if (strcmp(mi[reg->pc], "0000000000000000") == 0) {
     printf("########## EXECUCAO CONCLUIDA! ##########\n");
@@ -612,8 +610,8 @@ void executa_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md
 
   // escreve no banco de registradores
   if (sinais->EscReg == 1) {
-    int destino = RegDest(decod->rd, decod->rt, sinais->RegDest);
-    int dado_final = MemReg(ula_out->resultado, dado_mem, sinais->MemParaReg);
+    destino = RegDest(decod->rd, decod->rt, sinais->RegDest);
+    dado_final = MemReg(ula_out->resultado, dado_mem, sinais->MemParaReg);
     reg->br[destino] = dado_final;
     printf("Registrador[%d] = %d\n", destino, dado_final);
   }
@@ -639,7 +637,7 @@ void executa_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md
   } 
 
   // executa
-  int entradaB = ULAFonte(dadoB, decod->imm, sinais->ULAFonte);
+  entradaB = ULAFonte(dadoB, decod->imm, sinais->ULAFonte);
   ULA(dadoA, entradaB, sinais->ULAOp, ula_out); 
 
   // decodifica
