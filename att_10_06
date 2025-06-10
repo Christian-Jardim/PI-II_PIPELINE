@@ -210,11 +210,8 @@ int main() {
       getchar();
       break;
     case 8:
-      executa_pipeline_ciclo(mi, &inst, &decod, &reg, md, &sinais, &ula_out, &ciclo);
       break;
-    case 9:
-      executa_ciclo(mi, &inst, &decod, &reg, md, &stack, &sinais, &ula_out);
-      getchar();
+    case 9:executa_pipeline_ciclo(mi, &inst, &decod, &reg, md, &sinais, &ula_out, &ciclo);
       break;
     case 10:
       step_back(&stack,&reg,md);
@@ -599,7 +596,7 @@ int limite_back(Stack *stack) {
 
 void executa_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md, Stack *stack, Sinais *sinais, ULA_Out *ula_out) {
 
-  int dado_mem = 0, dadoA = reg->br[decod->rs], dadoB = reg->br[decod->rt], destino, dado_final, entradaB;
+  int dado_mem = 0, dadoA = reg->br[decod->rs], dadoB = reg->br[decod->rt], destino, dado_final, entrada B;
 
   if (strcmp(mi[reg->pc], "0000000000000000") == 0) {
     printf("########## EXECUCAO CONCLUIDA! ##########\n");
@@ -823,6 +820,8 @@ void executa_pipeline_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg
   int dado=0, entradaB=0;
   
   printf("\nCICLO %d\n", *ciclo);
+
+  empilha(stack, reg, md);
 
   // escreve no banco de registradores
   if (reg->mem_wb.escreg){
