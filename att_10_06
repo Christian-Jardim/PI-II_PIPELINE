@@ -599,7 +599,7 @@ int limite_back(Stack *stack) {
 
 void executa_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md, Stack *stack, Sinais *sinais, ULA_Out *ula_out) {
 
-  int dado_mem = 0, dadoA = reg->br[decod->rs], dadoB = reg->br[decod->rt], destino, dado_final, entrada B;
+  int dado_mem = 0, dadoA = reg->br[decod->rs], dadoB = reg->br[decod->rt], destino, dado_final, entradaB;
 
   if (strcmp(mi[reg->pc], "0000000000000000") == 0) {
     printf("########## EXECUCAO CONCLUIDA! ##########\n");
