@@ -19,6 +19,10 @@ typedef struct sinais {
 	    MemParaReg;
 } Sinais;
 
+typedef struct unidaded_forwarding {
+	int a,b;
+} UF;
+
 typedef struct if_id {
 	int pc;
 	char inst[17];
@@ -146,7 +150,7 @@ void salvarMemDados(int *md);
 
 void controle(int opcode, int funct, Sinais *sinais);
 
-int executa_pipeline_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sinais *sinais,ULA_Out *ula_out,int *ciclo,Stack *stack,int *cont);
+int executa_pipeline_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sinais *sinais,ULA_Out *ula_out,int *ciclo,Stack *stack,int *cont,UF *uf);
 
 void escreve_br(int *reg, int dado, int EscReg);
 void escreve_md(int *index, int dado, int EscMem);
@@ -161,6 +165,7 @@ int ULAFonteB(int b,int imm,int saidaula,int dado,int ULAFonte);
 // PROGRAMA PRINCIPAL
 int main() {
 	Sinais sinais;
+	UF uf;
 	Inst inst;
 	Decod decod;
 	Stack stack;
@@ -219,7 +224,7 @@ int main() {
 		case 8:
 			break;
 		case 9:
-			executa_pipeline_ciclo(mi,&inst,&decod,&reg,md,&sinais,&ula_out,&ciclo,&stack,&cont);
+			executa_pipeline_ciclo(mi,&inst,&decod,&reg,md,&sinais,&ula_out,&ciclo,&stack,&cont,&uf);
 			break;
 		case 10:
 			step_back(&stack,&reg,md);
@@ -441,8 +446,7 @@ void decodificarInstrucao(const char *bin, Inst *inst, Decod *decod) {
 }
 
 // copia os bits da instrucao para cada campo da struct instrucao
-void copiarBits(const char *instrucao, char *destino, int inicio, int tamanho)
-{
+void copiarBits(const char *instrucao, char *destino, int inicio, int tamanho) {
 	strncpy(destino, instrucao + inicio, tamanho); // Copia os bits desejados
 	destino[tamanho] = '\0';  // Adiciona o terminador de string
 }
@@ -590,6 +594,23 @@ void empilha(Stack *stack, Reg *reg, int *md) {
 	}
 
 	nNodo->pc = reg->pc;
+	
+	nNodo->if_id.pc = reg->if_id.pc;
+	strcpy(nNodo->if_id.inst,reg->if_id.inst);
+	
+	nNodo->id_ex.memreg = reg->id_ex.memreg;
+	nNodo->id_ex.escreg = reg->id_ex.escreg;
+	nNodo->id_ex.branch = reg->id_ex.branch;
+	nNodo->id_ex.jump = reg->id_ex.jump;
+	nNodo->id_ex.escmem = reg->id_ex.escmem;
+	nNodo->id_ex.regdest = reg->id_ex.regdest;
+	nNodo->id_ex.ulafonte = reg->id_ex.ulafonte;
+	nNodo->id_ex.opula = reg->id_ex.opula;
+	nNodo->id_ex.a = reg->id_ex.a;
+	nNodo->id_ex.b = reg->id_ex.b;
+	nNodo->id_ex.imm = reg->id_ex.imm;
+	nNodo->id_ex.rt = reg->id_ex.rt;
+	nNodo->id_ex.rd = reg->id_ex.rd;
 
 	nNodo->prox = stack->topo;
 	stack->topo = nNodo;
@@ -740,10 +761,10 @@ int ULAFonteA(int a,int saidaula,int dado,int ULAFonte) {
 		return a;
 		break;
 	case 1:
-	    return saidaula;
+		return saidaula;
 		break;
 	case 2:
-	    return dado;
+		return dado;
 		break;
 	}
 }
@@ -756,10 +777,10 @@ int ULAFonteB(int b,int imm,int saidaula,int dado,int ULAFonte) {
 	case 1:
 		return imm;
 	case 2:
-	    return saidaula;
+		return saidaula;
 		break;
 	case 3:
-	    return dado;
+		return dado;
 		break;
 	}
 }
@@ -821,7 +842,7 @@ void ULA(int op1, int op2, int opULA, ULA_Out *ula_out) {
 	}
 }
 
-int executa_pipeline_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sinais *sinais,ULA_Out *ula_out,int *ciclo,Stack *stack,int *cont) {
+int executa_pipeline_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sinais *sinais,ULA_Out *ula_out,int *ciclo,Stack *stack,int *cont, UF *uf) {
 
 	if(*cont == 0) {
 		printf("\n\nFIM DO PROGRAMA!\n\n");
@@ -892,10 +913,10 @@ int executa_pipeline_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int
 	}
 
 	if(*ciclo > 1) {
-	    printf("[ID] Instrucao: ");
+		printf("[ID] Instrucao: ");
 		printInstrucao(decod);
 		printf("\n");
-		
+
 		hazard_controle = comparador(decod->rs, decod->rt);
 		if((decod->rd == 0 && decod->opcode == 0) || (decod->rd == 0 && decod->opcode == 4) || ula_out->flag_zero == 1/*|| hazard_controle == 1*/) {
 			reg->id_ex.escreg = 0;
