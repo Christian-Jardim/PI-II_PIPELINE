@@ -197,7 +197,7 @@ int main() {
 			printMemory(mi, &inst, &decod);
 			printmemory(md);
 			printReg(&reg);
-			printf("\n\nPC: %d", reg.pc);
+			printf("\n\nPC: %d\n", reg.pc);
 			getchar();
 			break;
 		case 6:
