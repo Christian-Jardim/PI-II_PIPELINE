@@ -170,7 +170,7 @@ int main() {
 
 	do {
 		op = menu();
-		printf("VocC* escolheu a opC'C#o: %d\n", op);
+		printf("Voce escolheu a opcao: %d\n", op);
 		printf("\n");
 		switch (op) {
 		case 1:
@@ -211,7 +211,7 @@ int main() {
 		case 8:
 			break;
 		case 9:
-			executa_pipeline_ciclo(mi, &inst, &decod, &reg, md, &sinais, &ula_out, &ciclo,&stack, &cont);
+			executa_pipeline_ciclo(mi,&inst,&decod,&reg,md,&sinais,&ula_out,&ciclo,&stack,&cont);
 			break;
 		case 10:
 			step_back(&stack,&reg,md);
@@ -781,29 +781,30 @@ void ULA(int op1, int op2, int opULA, ULA_Out *ula_out) {
 	}
 }
 
-void executa_pipeline_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md, Sinais *sinais, ULA_Out *ula_out, int *ciclo, Stack *stack, int *cont) {
+int executa_pipeline_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md, Sinais *sinais, ULA_Out *ula_out, int *ciclo, Stack *stack, int *cont) {
 
 	if(*cont == 0) {
-		return;
+	    printf("\n\nFIM DO PROGRAMA!\n\n");
+		return 0;
 	}
 
 	int dado=0, entradaB=0;
 
-	printf("\nCICLO %d\n", *ciclo);
+	printf("\nEXECUTADO O CICLO %d\n", *ciclo);
 
 	empilha(stack, reg, md);
-    printf("\n\nESC REG: %d\n\n",reg->mem_wb.escreg);
+  
 	// escreve no banco de registradores
 	if (reg->mem_wb.escreg) {
 		dado = MemReg(reg->mem_wb.saidaula, reg->mem_wb.dadomem, reg->mem_wb.memreg);
 		reg->br[reg->mem_wb.rd] = dado;
-		printf("[WB] registrador[%d] = %d\n", reg->mem_wb.rd, dado);
+		printf("[WB] Registrador[%d] = %d\n", reg->mem_wb.rd, dado);
 	}
 
 	// acessa memoria
 	if (reg->ex_mem.escmem) {
 		md[reg->ex_mem.saidaula] = reg->ex_mem.b;
-		printf("[MEM] memoria[%d] = %d\n", reg->ex_mem.saidaula, reg->ex_mem.b);
+		printf("[MEM] Memoria[%d] = %d\n", reg->ex_mem.saidaula, reg->ex_mem.b);
 	}
 
 	reg->mem_wb.memreg = reg->ex_mem.memreg;
@@ -811,6 +812,15 @@ void executa_pipeline_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg
 	reg->mem_wb.dadomem = md[reg->ex_mem.saidaula];
 	reg->mem_wb.saidaula = reg->ex_mem.saidaula;
 	reg->mem_wb.rd = reg->ex_mem.rd;
+	
+	if(sinais->DI) {
+		reg->pc = decod->addr;
+		printf("[ID] Jump:\n\nPC = %d\n", reg->pc);
+	}
+	if(sinais->DC && ula_out->flag_zero) {
+		reg->pc = reg->pc + decod->imm;
+		printf("[EX] Branch:\n\nPC = %d\n", reg->pc);
+	}
 
 	// executa
 	entradaB = ULAFonte(reg->id_ex.b, reg->id_ex.imm, reg->id_ex.ulafonte);
@@ -831,14 +841,14 @@ void executa_pipeline_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg
 	}
 	
 	controle(decod->opcode, decod->funct, sinais);
-	printf("[DI] InstruC'C#o: ");
+	printf("[ID] Instrucao: ");
 	printInstrucao(decod);
 	printf("\n");
 
     if(sinais->EscPC == 1) {
 		reg->pc = reg->if_id.pc;
 	}
-    printf("\n\nPC: %d\n\n",reg->pc);
+	
     if(decod->rd == 0 && decod->opcode == 0) {
         reg->id_ex.escreg = 0;
         reg->id_ex.escmem = 0;
@@ -848,10 +858,8 @@ void executa_pipeline_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg
     }
 
 	reg->id_ex.memreg = sinais->MemParaReg;
-	
 	reg->id_ex.branch = sinais->DC;
 	reg->id_ex.jump = sinais->DI;
-	
 	reg->id_ex.regdest = sinais->RegDest;
 	reg->id_ex.ulafonte = sinais->ULAFonte;
 	reg->id_ex.opula = sinais->ULAOp;
@@ -864,16 +872,7 @@ void executa_pipeline_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg
 	// busca
 	strcpy(reg->if_id.inst, mi[reg->pc]);
 	reg->if_id.pc = somador(reg->pc, 1);
-	printf("[BI] busca:\n\nPC = %d\ninstrucao = %s\n", reg->pc, reg->if_id.inst);
-
-	if(sinais->DI) {
-		reg->pc = decod->addr;
-		printf("[DI] jump:\n\nPC = %d\n", reg->pc);
-	}
-	if(sinais->DC && ula_out->flag_zero) {
-		reg->pc = reg->pc + decod->imm;
-		printf("[EX] Branch:\n\nPC = %d\n", reg->pc);
-	}
+	printf("[IF] Busca:\n\nPC = %d\ninstrucao = %s\n", reg->pc, reg->if_id.inst);
 
 	(*ciclo)++;
 }
