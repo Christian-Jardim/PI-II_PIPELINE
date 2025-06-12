@@ -140,7 +140,7 @@ void salvarAssembly(char mi[256][17]);
 void salvarMemDados(int *md);
 
 void controle(int opcode, int funct, Sinais *sinais);
-void executa_pipeline_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md, Sinais *sinais, ULA_Out *ula_out, int *ciclo, Stack *stack);
+void executa_pipeline_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md, Sinais *sinais, ULA_Out *ula_out, int *ciclo, Stack *stack, int *cont);
 
 void escreve_br(int *reg, int dado, int EscReg);
 void escreve_md(int *index, int dado, int EscMem);
@@ -161,7 +161,7 @@ int main() {
 	ULA_Out ula_out;
 	MI;
 	MD;
-	int ciclo = 1;
+	int ciclo = 1, cont = 5;
 
 	inicia_pilha(&stack);
 
@@ -211,7 +211,7 @@ int main() {
 		case 8:
 			break;
 		case 9:
-			executa_pipeline_ciclo(mi, &inst, &decod, &reg, md, &sinais, &ula_out, &ciclo,&stack);
+			executa_pipeline_ciclo(mi, &inst, &decod, &reg, md, &sinais, &ula_out, &ciclo,&stack, &cont);
 			break;
 		case 10:
 			step_back(&stack,&reg,md);
@@ -781,9 +781,13 @@ void ULA(int op1, int op2, int opULA, ULA_Out *ula_out) {
 	}
 }
 
-void executa_pipeline_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md, Sinais *sinais, ULA_Out *ula_out, int *ciclo, Stack *stack) {
+void executa_pipeline_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md, Sinais *sinais, ULA_Out *ula_out, int *ciclo, Stack *stack, int *cont) {
 
-	int dado=0, entradaB=0, cont = 5;
+	if(*cont == 0) {
+		return;
+	}
+
+	int dado=0, entradaB=0;
 
 	printf("\nCICLO %d\n", *ciclo);
 
@@ -821,6 +825,11 @@ void executa_pipeline_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg
 
 	// decodifica
 	decodificarInstrucao(reg->if_id.inst, inst, decod);
+
+	if(decod->rd == 0 && decod->opcode == 0) {
+		(*cont)--;
+	}
+	
 	controle(decod->opcode, decod->funct, sinais);
 	printf("[DI] InstruC'C#o: ");
 	printInstrucao(decod);
