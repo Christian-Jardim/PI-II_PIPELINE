@@ -791,7 +791,7 @@ void ULA(int op1, int op2, int opULA, ULA_Out *ula_out) {
 int executa_pipeline_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg, int *md, Sinais *sinais, ULA_Out *ula_out, int *ciclo, Stack *stack, int *cont) {
 
 	if(*cont == 0) {
-		printf("\n\nFIM DO PROGRAMA!\n\n");
+	    printf("\n\nFIM DO PROGRAMA!\n\n");
 		return 0;
 	}
 
@@ -800,7 +800,7 @@ int executa_pipeline_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg,
 	printf("\nEXECUTADO O CICLO %d\n", *ciclo);
 
 	empilha(stack, reg, md);
-
+  
 	// escreve no banco de registradores
 	if (reg->mem_wb.escreg) {
 		dado = MemReg(reg->mem_wb.saidaula, reg->mem_wb.dadomem, reg->mem_wb.memreg);
@@ -819,7 +819,7 @@ int executa_pipeline_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg,
 	reg->mem_wb.dadomem = md[reg->ex_mem.saidaula];
 	reg->mem_wb.saidaula = reg->ex_mem.saidaula;
 	reg->mem_wb.rd = reg->ex_mem.rd;
-
+	
 	if(sinais->DI) {
 		reg->pc = decod->addr;
 		printf("[ID] Jump:\n\nPC = %d\n", reg->pc);
@@ -846,23 +846,23 @@ int executa_pipeline_ciclo(char mi[256][17], Inst *inst, Decod *decod, Reg *reg,
 	if(decod->rd == 0 && decod->opcode == 0) {
 		(*cont)--;
 	}
-
+	
 	controle(decod->opcode, decod->funct, sinais);
 	printf("[ID] Instrucao: ");
 	printInstrucao(decod);
 	printf("\n");
 
-	if(sinais->EscPC == 1) {
+    if(sinais->EscPC == 1) {
 		reg->pc = reg->if_id.pc;
 	}
-
-	if(decod->rd == 0 && decod->opcode == 0) {
-		reg->id_ex.escreg = 0;
-		reg->id_ex.escmem = 0;
-	} else {
-		reg->id_ex.escreg = sinais->EscReg;
-		reg->id_ex.escmem = sinais->EscMem;
-	}
+	
+    if(decod->rd == 0 && decod->opcode == 0) {
+        reg->id_ex.escreg = 0;
+        reg->id_ex.escmem = 0;
+    } else {
+        reg->id_ex.escreg = sinais->EscReg;
+        reg->id_ex.escmem = sinais->EscMem;
+    }
 
 	reg->id_ex.memreg = sinais->MemParaReg;
 	reg->id_ex.branch = sinais->DC;
