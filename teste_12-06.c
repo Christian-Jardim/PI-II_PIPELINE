@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ncurses.h>
 
 #define MI char mi[256][17] = {{'\0'}}
 #define MD int md[256] = {0}
@@ -123,7 +122,7 @@ typedef struct pilha {
 } Stack;
 
 //ASSINATURA DAS FUNCOES
-int menu();
+void menu();
 
 void inputJanelaArquivo(char *buffer, int maxlen);
 int carregaMemInst(char mi[256][17]);
@@ -184,45 +183,34 @@ int main() {
 	reg.pc = 0;
 
 	do {
-		//op = menu();
-		//printf("VocC* escolheu a opC'C#o: %d\n", op);
 		scanf("%d",&op);
 		printf("\n");
 		switch (op) {
 		case 1:
 			carregaMemInst(mi);
-			clear();
-			refresh();
 			break;
 		case 2:
 			carregarMemoriaDados(md);
-			clear();
-			refresh();
 			break;
 		case 3:
 			printMemory(mi, &inst, &decod);
 			printmemory(md);
-			getchar();
 			break;
 		case 4:
 			printReg(&reg);
 			printf("\n");
-			getchar();
 			break;
 		case 5:
 			printMemory(mi, &inst, &decod);
 			printmemory(md);
 			printReg(&reg);
 			printf("\n\nPC: %d\n", reg.pc);
-			getchar();
 			break;
 		case 6:
 			salvarAssembly(mi);
-			getchar();
 			break;
 		case 7:
 			salvarMemDados(md);
-			getchar();
 			break;
 		case 8:
 			break;
@@ -231,7 +219,6 @@ int main() {
 			break;
 		case 10:
 			step_back(&stack,&reg,md);
-			getchar();
 			break;
 		case 11:
 			printf("Voce saiu!!!\n");
@@ -241,93 +228,14 @@ int main() {
 	return 0;
 }
 
-/*FUNCOES IMPLEMENTADAS
-
-//MENU
-int menu() {
-        initscr();              // Inicia ncurses
-        noecho();               // NC#o exibe teclas digitadas
-        cbreak();               // Leitura imediata de teclas
-        curs_set(0);            // Oculta o cursor
-        keypad(stdscr, TRUE);   // Habilita teclas especiais como setas
-
-        const char *opcoes[] = {
-                "1 - Carregar memoria de instrucoes",
-                "2 - Carregar memoria de dados",
-                "3 - Imprimir memorias",
-                "4 - Imprimir banco de registradores",
-                "5 - Imprimir todo o simulador",
-                "6 - Salvar .asm",
-                "7 - Salvar .dat",
-                "8 - Executar programa",
-                "9 - Executar instrucao",
-                "10 - Volta uma instrucao",
-                "11 - Sair"
-        };
-        int n_opcoes = sizeof(opcoes) / sizeof(opcoes[0]);
-        int escolha = 0;
-
-        int yMax, xMax;
-        getmaxyx(stdscr, yMax, xMax);
-
-        WINDOW *menuwin = newwin(n_opcoes + 4, 50, 0, 0);
-        box(menuwin, 0, 0);
-        keypad(menuwin, TRUE);
-
-        int ch;
-        while (1) {
-                // TC-tulo
-                mvwprintw(menuwin, 1, 18, "*** MENU ***");
-
-                // Imprimir opC'C5es
-                for (int i = 0; i < n_opcoes; i++) {
-                        if (i == escolha)
-                                wattron(menuwin, A_REVERSE); // Destaque
-                        mvwprintw(menuwin, i + 2, 2, "%s", opcoes[i]);
-                        wattroff(menuwin, A_REVERSE);
-                }
-
-                wrefresh(menuwin);
-
-                ch = wgetch(menuwin);
-                switch (ch) {
-                case KEY_UP:
-                        escolha = (escolha - 1 + n_opcoes) % n_opcoes;
-                        break;
-                case KEY_DOWN:
-                        escolha = (escolha + 1) % n_opcoes;
-                        break;
-                case 10: // Enter
-                        delwin(menuwin);
-                        endwin();
-                        return escolha + 1; // retorna a opC'C#o escolhida (1 a 11)
-                }
-        }
+//FUNCOES IMPLEMENTADAS
+void menu() {
+    printf("\n1 - Carregar memoria de instrucoes\n");
+    printf("2 - Carregar memoria de dados\n");
+    printf("3 -  Imprimir memorias\n");
+    printf("8 - Executar ciclo\n");
+    printf("11 - Sair\n");
 }
-
-//cria janela para inputar texto
-void inputJanelaArquivo(char *buffer, int maxlen) {
-    int altura = 7, largura = 50;
-    int yMax, xMax;
-    getmaxyx(stdscr, yMax, xMax);
-
-    //WINDOW *inputwin = newwin(altura, largura, (yMax - altura) / 2, (xMax - largura) / 2);
-    WINDOW *inputwin = newwin(altura, largura, 16, 0);
-    box(inputwin, 0, 0);
-
-    mvwprintw(inputwin, 1, 2, "Digite o nome do arquivo de instrucoes:");
-    mvwprintw(inputwin, 3, 2, "> ");
-    echo(); // Mostra o que o usuC!rio digita
-
-    wrefresh(inputwin);
-
-    // Captura atC) maxlen-1 caracteres
-    wgetnstr(inputwin, buffer, maxlen - 1);
-
-    noecho(); // Volta ao modo sem eco
-    delwin(inputwin);
-}*/
-
 // carrega memoria de instrucoes a partir de um "arquivo.mem"
 int carregaMemInst(char mi[256][17]) {
 	char arquivo[20],extensao[5];
@@ -641,33 +549,44 @@ int somador(int op1, int op2) {
 	return op1 + op2;
 }
 
-void Forward(int rs, int rt, int rd_mem,int rd_wb, int opcode,int ulafonte, UF *uf) {
-	if(opcode == 4 || opcode == 11 || opcode == 15) {
-		if(rs == rd_mem && rs != 0) {
-			uf->a = 1;
-		}
-		else if(rs == rd_wb && rs != 0) {
-		    uf->a = 2;
+void Forward(int rs, int rt, int rd_mem, int rd_wb, int opcode, int ulafonte, UF *uf) {
+	if (opcode == 4 || opcode == 11 || opcode == 15) {
+		uf->b = ulafonte;
+
+		if (rt != 0) {
+			if (rt == rd_wb) {
+				uf->a = 2;
+			} else if (rt == rd_mem) {
+				uf->a = 1;
+			} else {
+				uf->a = 0;
+			}
 		} else {
 			uf->a = 0;
 		}
 	} else {
-		if(rt == rd_mem && rt != 0) {
-			uf->b = 1;
-		}
-		else if(rs == rd_wb && rt != 0) {
-			uf->b = 2;
+		if (rt != 0) {
+			if (rt == rd_mem) {
+				uf->b = 1;
+			} else if (rt == rd_wb) {
+				uf->b = 2;
+			} else {
+				uf->b = 0;
+			}
 		} else {
-			uf->b = ulafonte;
+			uf->b = 0;
 		}
 
-		if(rs == rd_mem && rs != 0) {
-			uf->a = 1;
-		}
-		else if(rs == rd_wb && rs != 0) {
-			uf->a = 2;
+		if (rs != 0) {
+			if (rs == rd_wb) {
+				uf->a = 2;
+			} else if (rs == rd_mem) {
+				uf->a = 1;
+			} else {
+				uf->a = 0;
+			}
 		} else {
-			uf->a = ulafonte;
+			uf->a = 0;
 		}
 	}
 }
@@ -797,7 +716,7 @@ int ULAFonteA(int a,int saidaula,int dado,int ULAFonte) {
 	}
 }
 
-int ULAFonteB(int b,int imm,int saidaula,int dado,int ULAFonte) {
+int ULAFonteB(int b,int saidaula,int dado,int imm,int ULAFonte) {
 	switch (ULAFonte) {
 	case 0:
 		return b;
@@ -872,7 +791,7 @@ void ULA(int op1, int op2, int opULA, ULA_Out *ula_out) {
 
 int executa_pipeline_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sinais *sinais,ULA_Out *ula_out,int *ciclo,Stack *stack,int *cont, UF *uf) {
 
-	if(*cont == 0) {
+	if(*cont < 1) {
 		printf("\n\nFIM DO PROGRAMA!\n\n");
 		return 0;
 	}
@@ -882,7 +801,7 @@ int executa_pipeline_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int
 	printf("\nEXECUTADO O CICLO %d\n",*ciclo);
 
 	empilha(stack, reg, md);
-    printf("\nESC reg %d\n",reg->mem_wb.escreg);
+	
 	// escreve no banco de registradores
 	if (reg->mem_wb.escreg) {
 		dado = MemReg(reg->mem_wb.saidaula, reg->mem_wb.dadomem, reg->mem_wb.memreg);
@@ -913,11 +832,10 @@ int executa_pipeline_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int
 
 	// executa
 	Forward(reg->id_ex.rs,reg->id_ex.rt,reg->ex_mem.rd,reg->mem_wb.rd,reg->id_ex.opcode,reg->id_ex.ulafonte,uf);
-	printf("\nULA FONTE %d\n",reg->id_ex.ulafonte);
+    
 	entradaA = ULAFonteA(reg->id_ex.a,reg->ex_mem.saidaula,dado,uf->a);
-	entradaB = ULAFonteB(reg->id_ex.b,reg->ex_mem.saidaula,reg->id_ex.imm,dado,uf->b);
-	printf("\n%d",uf->a);
-	printf("\n%d\n",uf->b);
+	entradaB = ULAFonteB(reg->id_ex.b,reg->ex_mem.saidaula,dado,reg->id_ex.imm,uf->b);
+	
 	ULA(entradaA, entradaB, reg->id_ex.opula, ula_out);
 
 	if(*ciclo > 2) {
@@ -949,14 +867,14 @@ int executa_pipeline_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int
 		printInstrucao(decod);
 		printf("\n");
 	}
-	/*hazard_controle = comparador(decod->rs, decod->rt);
-	if((decod->rd == 0 && decod->opcode == 0) || (decod->rt == 0 && decod->opcode == 4) || ula_out->flag_zero == 1/*|| hazard_controle == 1) {
+
+	if((decod->rd == 0 && decod->opcode == 0) || (decod->rt == 0 && decod->opcode == 4)) {
 		reg->id_ex.escreg = 0;
 		reg->id_ex.escmem = 0;
-	} else {*/
-	reg->id_ex.escreg = sinais->EscReg;
-	reg->id_ex.escmem = sinais->EscMem;
-	//}
+	} else {
+		reg->id_ex.escreg = sinais->EscReg;
+		reg->id_ex.escmem = sinais->EscMem;
+	}
 	reg->id_ex.opcode = decod->opcode;
 	reg->id_ex.memreg = sinais->MemParaReg;
 	reg->id_ex.branch = sinais->DC;
@@ -975,7 +893,7 @@ int executa_pipeline_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int
 
 	strcpy(reg->if_id.inst, mi[reg->pc]);
 	reg->if_id.pc = somador(reg->pc, 1);
-	printf("[IF] Busca:\n\nPC = %d\ninstrucao = %s\n", reg->pc, reg->if_id.inst);
+	printf("[IF] PC = %d\nInstrucao = %s\n", reg->pc, reg->if_id.inst);
 
 	(*ciclo)++;
 }
