@@ -40,6 +40,7 @@ typedef struct id_ex {
 	    a,
 	    b,
 	    imm,
+	    rs,
 	    rt,
 	    rd;
 } ID_EX;
@@ -142,8 +143,8 @@ void empilha(Stack *stack,Reg *reg, int *md);
 int limite_back(Stack *stack);
 
 void ULA(int op1, int op2, int opULA, ULA_Out *ula_out);
+int UF(int rs, int rt, int rd, int ulafonte) { 
 int somador(int op1, int op2);
-int comparador(int op1, int p2);
 
 void salvarAssembly(char mi[256][17]);
 void salvarMemDados(int *md);
@@ -242,64 +243,64 @@ int main() {
 
 //MENU
 int menu() {
-	initscr();              // Inicia ncurses
-	noecho();               // NC#o exibe teclas digitadas
-	cbreak();               // Leitura imediata de teclas
-	curs_set(0);            // Oculta o cursor
-	keypad(stdscr, TRUE);   // Habilita teclas especiais como setas
+        initscr();              // Inicia ncurses
+        noecho();               // NC#o exibe teclas digitadas
+        cbreak();               // Leitura imediata de teclas
+        curs_set(0);            // Oculta o cursor
+        keypad(stdscr, TRUE);   // Habilita teclas especiais como setas
 
-	const char *opcoes[] = {
-		"1 - Carregar memoria de instrucoes",
-		"2 - Carregar memoria de dados",
-		"3 - Imprimir memorias",
-		"4 - Imprimir banco de registradores",
-		"5 - Imprimir todo o simulador",
-		"6 - Salvar .asm",
-		"7 - Salvar .dat",
-		"8 - Executar programa",
-		"9 - Executar instrucao",
-		"10 - Volta uma instrucao",
-		"11 - Sair"
-	};
-	int n_opcoes = sizeof(opcoes) / sizeof(opcoes[0]);
-	int escolha = 0;
+        const char *opcoes[] = {
+                "1 - Carregar memoria de instrucoes",
+                "2 - Carregar memoria de dados",
+                "3 - Imprimir memorias",
+                "4 - Imprimir banco de registradores",
+                "5 - Imprimir todo o simulador",
+                "6 - Salvar .asm",
+                "7 - Salvar .dat",
+                "8 - Executar programa",
+                "9 - Executar instrucao",
+                "10 - Volta uma instrucao",
+                "11 - Sair"
+        };
+        int n_opcoes = sizeof(opcoes) / sizeof(opcoes[0]);
+        int escolha = 0;
 
-	int yMax, xMax;
-	getmaxyx(stdscr, yMax, xMax);
+        int yMax, xMax;
+        getmaxyx(stdscr, yMax, xMax);
 
-	WINDOW *menuwin = newwin(n_opcoes + 4, 50, 0, 0);
-	box(menuwin, 0, 0);
-	keypad(menuwin, TRUE);
+        WINDOW *menuwin = newwin(n_opcoes + 4, 50, 0, 0);
+        box(menuwin, 0, 0);
+        keypad(menuwin, TRUE);
 
-	int ch;
-	while (1) {
-		// TC-tulo
-		mvwprintw(menuwin, 1, 18, "*** MENU ***");
+        int ch;
+        while (1) {
+                // TC-tulo
+                mvwprintw(menuwin, 1, 18, "*** MENU ***");
 
-		// Imprimir opC'C5es
-		for (int i = 0; i < n_opcoes; i++) {
-			if (i == escolha)
-				wattron(menuwin, A_REVERSE); // Destaque
-			mvwprintw(menuwin, i + 2, 2, "%s", opcoes[i]);
-			wattroff(menuwin, A_REVERSE);
-		}
+                // Imprimir opC'C5es
+                for (int i = 0; i < n_opcoes; i++) {
+                        if (i == escolha)
+                                wattron(menuwin, A_REVERSE); // Destaque
+                        mvwprintw(menuwin, i + 2, 2, "%s", opcoes[i]);
+                        wattroff(menuwin, A_REVERSE);
+                }
 
-		wrefresh(menuwin);
+                wrefresh(menuwin);
 
-		ch = wgetch(menuwin);
-		switch (ch) {
-		case KEY_UP:
-			escolha = (escolha - 1 + n_opcoes) % n_opcoes;
-			break;
-		case KEY_DOWN:
-			escolha = (escolha + 1) % n_opcoes;
-			break;
-		case 10: // Enter
-			delwin(menuwin);
-			endwin();
-			return escolha + 1; // retorna a opC'C#o escolhida (1 a 11)
-		}
-	}
+                ch = wgetch(menuwin);
+                switch (ch) {
+                case KEY_UP:
+                        escolha = (escolha - 1 + n_opcoes) % n_opcoes;
+                        break;
+                case KEY_DOWN:
+                        escolha = (escolha + 1) % n_opcoes;
+                        break;
+                case 10: // Enter
+                        delwin(menuwin);
+                        endwin();
+                        return escolha + 1; // retorna a opC'C#o escolhida (1 a 11)
+                }
+        }
 }
 
 //cria janela para inputar texto
@@ -594,10 +595,10 @@ void empilha(Stack *stack, Reg *reg, int *md) {
 	}
 
 	nNodo->pc = reg->pc;
-	
+
 	nNodo->if_id.pc = reg->if_id.pc;
 	strcpy(nNodo->if_id.inst,reg->if_id.inst);
-	
+
 	nNodo->id_ex.memreg = reg->id_ex.memreg;
 	nNodo->id_ex.escreg = reg->id_ex.escreg;
 	nNodo->id_ex.branch = reg->id_ex.branch;
@@ -640,8 +641,8 @@ int somador(int op1, int op2) {
 	return op1 + op2;
 }
 
-int comparador(int op1, int op2) {
-	return op1 == op2;
+int UF(int rs, int rt, int rd, int ulafonte) {
+    
 }
 
 // limite do step back, termina desempilhamento na primeira instrucao executada
@@ -775,12 +776,12 @@ int ULAFonteB(int b,int imm,int saidaula,int dado,int ULAFonte) {
 		return b;
 		break;
 	case 1:
-		return imm;
-	case 2:
 		return saidaula;
+	case 2:
+		return dado;
 		break;
 	case 3:
-		return dado;
+		return imm;
 		break;
 	}
 }
@@ -849,7 +850,7 @@ int executa_pipeline_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int
 		return 0;
 	}
 
-	int dado,entradaA,entradaB,hazard_controle;
+	int dado,entradaA,entradaB,hazard_controle,uf_out;
 
 	printf("\nEXECUTADO O CICLO %d\n",*ciclo);
 
@@ -884,8 +885,9 @@ int executa_pipeline_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int
 	}
 
 	// executa
-	entradaA = ULAFonteA(reg->id_ex.b,reg->ex_mem.saidaula,dado,reg->id_ex.ulafonte);
-	entradaB = ULAFonteB(reg->id_ex.b,reg->id_ex.imm,reg->ex_mem.saidaula,dado,reg->id_ex.ulafonte);
+	uf_out = UF(reg->id_ex.rs,reg->id_ex.rt,reg->ex_mem.rd,reg->id_ex.ulafonte);
+	entradaA = ULAFonteA(reg->id_ex.a,reg->ex_mem.saidaula,dado,uf_out);
+	entradaB = ULAFonteB(reg->id_ex.b,reg->ex_mem.saidaula,reg->id_ex.imm,dado,uf_out);
 	ULA(entradaA, entradaB, reg->id_ex.opula, ula_out);
 
 	if(*ciclo > 2) {
@@ -936,6 +938,7 @@ int executa_pipeline_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int
 	reg->id_ex.a = reg->br[decod->rs];
 	reg->id_ex.b = reg->br[decod->rt];
 	reg->id_ex.imm = decod->imm;
+	reg->id_ex.rs = decod->rs;
 	reg->id_ex.rt = decod->rt;
 	reg->id_ex.rd = decod->rd;
 
