@@ -143,7 +143,7 @@ void empilha(Stack *stack,Reg *reg, int *md);
 int limite_back(Stack *stack);
 
 void ULA(int op1, int op2, int opULA, ULA_Out *ula_out);
-int UF(int rs, int rt, int rd, int ulafonte) { 
+int Forward(int rs, int rt, int rd, int ulafonte);
 int somador(int op1, int op2);
 
 void salvarAssembly(char mi[256][17]);
@@ -165,6 +165,7 @@ int ULAFonteB(int b,int imm,int saidaula,int dado,int ULAFonte);
 
 // PROGRAMA PRINCIPAL
 int main() {
+    
 	Sinais sinais;
 	UF uf;
 	Inst inst;
@@ -617,7 +618,6 @@ void empilha(Stack *stack, Reg *reg, int *md) {
 	stack->topo = nNodo;
 }
 
-
 // funcao de execucao do step back
 int step_back(Stack *stack, Reg *reg, int *md) {
 	Nodo *remover = stack->topo;
@@ -635,14 +635,29 @@ int step_back(Stack *stack, Reg *reg, int *md) {
 	return 0;
 }
 
-
 // somador
 int somador(int op1, int op2) {
 	return op1 + op2;
 }
 
-int UF(int rs, int rt, int rd, int ulafonte) {
+int Forward(int rs, int rt, int rd_mem,rd_wb, int ulafonte, UF *uf) {
+    if(rs == rd_mem){
+        uf->a = 1;
+    } 
+    else if(rs == rd_wb) {
+        uf->a = 2;
+    } else {
+        uf->a = ulafonte;
+    }
     
+    if(rt == rd_mem) {
+        uf->b = 1;
+    }
+    else if(rs == rd_wb) {
+        uf->b = 2;
+    } else {
+        uf->b = ulafonte;
+    }
 }
 
 // limite do step back, termina desempilhamento na primeira instrucao executada
@@ -885,7 +900,7 @@ int executa_pipeline_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int
 	}
 
 	// executa
-	uf_out = UF(reg->id_ex.rs,reg->id_ex.rt,reg->ex_mem.rd,reg->id_ex.ulafonte);
+	Forward(reg->id_ex.rs,reg->id_ex.rt,reg->ex_mem.rd,reg->mem_wb.rd,reg->id_ex.ulafonte,uf);
 	entradaA = ULAFonteA(reg->id_ex.a,reg->ex_mem.saidaula,dado,uf_out);
 	entradaB = ULAFonteB(reg->id_ex.b,reg->ex_mem.saidaula,reg->id_ex.imm,dado,uf_out);
 	ULA(entradaA, entradaB, reg->id_ex.opula, ula_out);
@@ -919,7 +934,7 @@ int executa_pipeline_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int
 		printInstrucao(decod);
 		printf("\n");
 
-		hazard_controle = comparador(decod->rs, decod->rt);
+		//hazard_controle = comparador(decod->rs, decod->rt);
 		if((decod->rd == 0 && decod->opcode == 0) || (decod->rd == 0 && decod->opcode == 4) || ula_out->flag_zero == 1/*|| hazard_controle == 1*/) {
 			reg->id_ex.escreg = 0;
 			reg->id_ex.escmem = 0;
