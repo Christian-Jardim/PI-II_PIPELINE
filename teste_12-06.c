@@ -647,9 +647,9 @@ void Forward(int rs, int rt, int rd_mem,int rd_wb, int opcode,int ulafonte, UF *
 			uf->a = 1;
 		}
 		else if(rs == rd_wb && rs != 0) {
-			uf->a = 2;
+		    uf->a = 2;
 		} else {
-			uf->a = ulafonte;
+			uf->a = 0;
 		}
 	} else {
 		if(rt == rd_mem && rt != 0) {
@@ -882,7 +882,7 @@ int executa_pipeline_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int
 	printf("\nEXECUTADO O CICLO %d\n",*ciclo);
 
 	empilha(stack, reg, md);
-
+    printf("\nESC reg %d\n",reg->mem_wb.escreg);
 	// escreve no banco de registradores
 	if (reg->mem_wb.escreg) {
 		dado = MemReg(reg->mem_wb.saidaula, reg->mem_wb.dadomem, reg->mem_wb.memreg);
