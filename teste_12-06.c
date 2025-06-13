@@ -37,6 +37,7 @@ typedef struct id_ex {
 	    regdest,
 	    ulafonte,
 	    opula,
+	    opcode,
 	    a,
 	    b,
 	    imm,
@@ -143,7 +144,7 @@ void empilha(Stack *stack,Reg *reg, int *md);
 int limite_back(Stack *stack);
 
 void ULA(int op1, int op2, int opULA, ULA_Out *ula_out);
-int Forward(int rs, int rt,int rd_mem,int rd_wb,int ulafonte, UF *uf);
+void Forward(int rs, int rt,int rd_mem,int rd_wb,int opcode,int ulafonte, UF *uf);
 int somador(int op1, int op2);
 
 void salvarAssembly(char mi[256][17]);
@@ -167,12 +168,12 @@ int ULAFonteB(int b,int imm,int saidaula,int dado,int ULAFonte);
 int main() {
 
 	Sinais sinais;
-	UF uf;
+	UF uf = {0};
 	Inst inst;
 	Decod decod;
 	Stack stack;
 	Reg reg = {0};
-	ULA_Out ula_out;
+	ULA_Out ula_out = {0};
 	MI;
 	MD;
 	int ciclo = 1, cont = 5;
@@ -640,23 +641,34 @@ int somador(int op1, int op2) {
 	return op1 + op2;
 }
 
-int Forward(int rs, int rt, int rd_mem,int rd_wb, int ulafonte, UF *uf) {
-	if(rs == rd_mem) {
-		uf->a = 1;
-	}
-	else if(rs == rd_wb) {
-		uf->a = 2;
+void Forward(int rs, int rt, int rd_mem,int rd_wb, int opcode,int ulafonte, UF *uf) {
+	if(opcode == 4 || opcode == 11 || opcode == 15) {
+		if(rs == rd_mem && rs != 0) {
+			uf->a = 1;
+		}
+		else if(rs == rd_wb && rs != 0) {
+			uf->a = 2;
+		} else {
+			uf->a = ulafonte;
+		}
 	} else {
-		uf->a = ulafonte;
-	}
+		if(rt == rd_mem && rt != 0) {
+			uf->b = 1;
+		}
+		else if(rs == rd_wb && rt != 0) {
+			uf->b = 2;
+		} else {
+			uf->b = ulafonte;
+		}
 
-	if(rt == rd_mem) {
-		uf->b = 1;
-	}
-	else if(rs == rd_wb) {
-		uf->b = 2;
-	} else {
-		uf->b = ulafonte;
+		if(rs == rd_mem && rs != 0) {
+			uf->a = 1;
+		}
+		else if(rs == rd_wb && rs != 0) {
+			uf->a = 2;
+		} else {
+			uf->a = ulafonte;
+		}
 	}
 }
 
@@ -900,7 +912,8 @@ int executa_pipeline_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int
 	}
 
 	// executa
-	Forward(reg->id_ex.rs,reg->id_ex.rt,reg->ex_mem.rd,reg->mem_wb.rd,reg->id_ex.ulafonte,uf->a);
+	Forward(reg->id_ex.rs,reg->id_ex.rt,reg->ex_mem.rd,reg->mem_wb.rd,reg->id_ex.opcode,reg->id_ex.ulafonte,uf);
+	printf("\nULA FONTE %d\n",reg->id_ex.ulafonte);
 	entradaA = ULAFonteA(reg->id_ex.a,reg->ex_mem.saidaula,dado,uf->a);
 	entradaB = ULAFonteB(reg->id_ex.b,reg->ex_mem.saidaula,reg->id_ex.imm,dado,uf->b);
 	printf("\n%d",uf->a);
@@ -944,7 +957,7 @@ int executa_pipeline_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int
 	reg->id_ex.escreg = sinais->EscReg;
 	reg->id_ex.escmem = sinais->EscMem;
 	//}
-
+	reg->id_ex.opcode = decod->opcode;
 	reg->id_ex.memreg = sinais->MemParaReg;
 	reg->id_ex.branch = sinais->DC;
 	reg->id_ex.jump = sinais->DI;
