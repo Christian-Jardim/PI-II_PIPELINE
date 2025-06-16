@@ -550,28 +550,27 @@ int somador(int op1, int op2) {
 }
 
 void Forward(int rs, int rt, int rd_mem, int rd_wb, int opcode, int ulafonte, UF *uf) {
-    
-    printf("\nRS %d\n",rs);
-    printf("\nRT %d\n",rt);
-    printf("\nRD MEM %d\n",rd_mem);
-    printf("\nRD WB %d\n",rd_wb);
-    printf("\nRD OP %d\n",opcode);
-    printf("\nRD RESUL ULA %d\n",ulafonte);
-    
+
+	printf("\nRS %d\n",rs);
+	printf("\nRT %d\n",rt);
+	printf("\nRD MEM %d\n",rd_mem);
+	printf("\nRD WB %d\n",rd_wb);
+	printf("\nRD OP %d\n",opcode);
+	printf("\nRD RESUL ULA %d\n",ulafonte);
+
 	if (opcode == 4 || opcode == 11 || opcode == 15) {
 		uf->b = ulafonte;
 
 		if (rs != 0) {
-		    if (rs == rd_mem) {
+			if (rs == rd_mem) {
 				uf->a = 1;
 			} else {
-				uf->a = 0;
-			}
-			
-			if (rs == rd_wb) {
-				uf->a = 2;
-			} else {
-				uf->a = 0;
+
+				if (rs == rd_wb) {
+					uf->a = 2;
+				} else {
+					uf->a = 0;
+				}
 			}
 
 		} else {
@@ -582,32 +581,26 @@ void Forward(int rs, int rt, int rd_mem, int rd_wb, int opcode, int ulafonte, UF
 			if (rt == rd_mem) {
 				uf->b = 1;
 			} else {
-				uf->b = ulafonte;
+				if (rt == rd_wb) {
+					uf->b = 2;
+				} else {
+					uf->b = ulafonte;
+				}
 			}
-			
-			if (rt == rd_wb) {
-				uf->b = 2;
-			} else {
-				uf->b = ulafonte;
-			}
-
 		} else {
 			uf->b = ulafonte;
 		}
 
 		if (rs != 0) {
-		    if (rs == rd_mem) {
+			if (rs == rd_mem) {
 				uf->a = 1;
 			} else {
-				uf->a = 0;
+				if (rs == rd_wb) {
+					uf->a = 2;
+				} else {
+					uf->a = 0;
+				}
 			}
-			
-			if (rs == rd_wb) {
-				uf->a = 2;
-			} else {
-				uf->a = 0;
-			}
-			
 		} else {
 			uf->a = 0;
 		}
@@ -818,7 +811,7 @@ int executa_pipeline_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int
 		printf("[MEM] Memoria[%d] = %d\n", reg->ex_mem.saidaula, reg->ex_mem.b);
 	}
 
-Forward(reg->id_ex.rs,reg->id_ex.rt,reg->ex_mem.rd,reg->mem_wb.rd,reg->id_ex.opcode,reg->id_ex.ulafonte,uf);
+	Forward(reg->id_ex.rs,reg->id_ex.rt,reg->ex_mem.rd,reg->mem_wb.rd,reg->id_ex.opcode,reg->id_ex.ulafonte,uf);
 
 	reg->mem_wb.memreg = reg->ex_mem.memreg;
 	reg->mem_wb.escreg = reg->ex_mem.escreg;
@@ -835,7 +828,7 @@ Forward(reg->id_ex.rs,reg->id_ex.rt,reg->ex_mem.rd,reg->mem_wb.rd,reg->id_ex.opc
 		printf("[EX] Branch:\n\nPC = %d\n", reg->pc);
 	}
 
-	// executa	
+	// executa
 	printf("\nUF A %d\n",uf->a);
 	printf("\nUF B %d\n",uf->b);
 
@@ -853,8 +846,8 @@ Forward(reg->id_ex.rs,reg->id_ex.rt,reg->ex_mem.rd,reg->mem_wb.rd,reg->id_ex.opc
 	reg->ex_mem.escmem = reg->id_ex.escmem;
 	reg->ex_mem.saidaula = ula_out->resultado;
 	reg->ex_mem.b = reg->id_ex.b;
-reg->ex_mem.rd = RegDest(reg->id_ex.rd, reg->id_ex.rt, reg->id_ex.regdest);
-	
+	reg->ex_mem.rd = RegDest(reg->id_ex.rd, reg->id_ex.rt, reg->id_ex.regdest);
+
 	// decodifica
 	decodificarInstrucao(reg->if_id.inst,inst,decod);
 
