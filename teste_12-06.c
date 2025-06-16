@@ -818,6 +818,8 @@ int executa_pipeline_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int
 		printf("[MEM] Memoria[%d] = %d\n", reg->ex_mem.saidaula, reg->ex_mem.b);
 	}
 
+Forward(reg->id_ex.rs,reg->id_ex.rt,reg->ex_mem.rd,reg->mem_wb.rd,reg->id_ex.opcode,reg->id_ex.ulafonte,uf);
+
 	reg->mem_wb.memreg = reg->ex_mem.memreg;
 	reg->mem_wb.escreg = reg->ex_mem.escreg;
 	reg->mem_wb.dadomem = md[reg->ex_mem.saidaula];
@@ -833,11 +835,7 @@ int executa_pipeline_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int
 		printf("[EX] Branch:\n\nPC = %d\n", reg->pc);
 	}
 
-	// executa
-
-reg->ex_mem.rd = RegDest(reg->id_ex.rd, reg->id_ex.rt, reg->id_ex.regdest);
-	Forward(reg->id_ex.rs,reg->id_ex.rt,reg->ex_mem.rd,reg->mem_wb.rd,reg->id_ex.opcode,reg->id_ex.ulafonte,uf);
-
+	// executa	
 	printf("\nUF A %d\n",uf->a);
 	printf("\nUF B %d\n",uf->b);
 
@@ -855,6 +853,7 @@ reg->ex_mem.rd = RegDest(reg->id_ex.rd, reg->id_ex.rt, reg->id_ex.regdest);
 	reg->ex_mem.escmem = reg->id_ex.escmem;
 	reg->ex_mem.saidaula = ula_out->resultado;
 	reg->ex_mem.b = reg->id_ex.b;
+reg->ex_mem.rd = RegDest(reg->id_ex.rd, reg->id_ex.rt, reg->id_ex.regdest);
 	
 	// decodifica
 	decodificarInstrucao(reg->if_id.inst,inst,decod);
