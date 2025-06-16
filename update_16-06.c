@@ -522,7 +522,7 @@ void empilha(Stack *stack, Reg *reg, int *md) {
 	nNodo->id_ex.imm = reg->id_ex.imm;
 	nNodo->id_ex.rt = reg->id_ex.rt;
 	nNodo->id_ex.rd = reg->id_ex.rd;
-	
+
 	nNodo->ex_mem.memreg = reg->ex_mem.memreg;
 	nNodo->ex_mem.escreg = reg->ex_mem.escreg;
 	nNodo->ex_mem.escmem = reg->ex_mem.escmem;
@@ -811,8 +811,8 @@ int executa_pipeline_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int
 		printf("[WB] Registrador[%d] = %d\n", reg->mem_wb.rd, dado);
 	}
 
-	// acessa memoria
 
+	// acessa memoria
 	if (reg->ex_mem.escmem) {
 		md[reg->ex_mem.saidaula] = reg->ex_mem.b;
 		printf("[MEM] Memoria[%d] = %d\n", reg->ex_mem.saidaula, reg->ex_mem.b);
@@ -893,17 +893,18 @@ int executa_pipeline_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int
 
 	// busca
 
-	if(reg->pc <= 256){
-	    strcpy(reg->if_id.inst, mi[reg->pc]);
+	if(reg->pc <= 256) {
+		strcpy(reg->if_id.inst, mi[reg->pc]);
 	} else {
-	    strcpy(reg->if_id.inst, "0000000000000000");
+		strcpy(reg->if_id.inst, "0000000000000000");
 	}
 	reg->if_id.pc = somador(reg->pc, 1);
 	printf("[IF] PC = %d\nInstrucao = %s\n", reg->pc, reg->if_id.inst);
+	
 
-    if(strcmp(reg->if_id.inst, "0000000000000000") == 0){
-        (*cont)--;
-    }
+	if(strcmp(reg->if_id.inst, "0000000000000000") == 0) {
+		(*cont)--;
+	}
 
 	(*ciclo)++;
 }
