@@ -175,7 +175,7 @@ int main() {
 	ULA_Out ula_out = {0};
 	MI;
 	MD;
-	int ciclo = 1, cont = 5;
+	int ciclo = 1, cont = 4;
 
 	inicia_pilha(&stack);
 
@@ -786,7 +786,7 @@ void ULA(int op1, int op2, int opULA, ULA_Out *ula_out) {
 
 int executa_pipeline_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sinais *sinais,ULA_Out *ula_out,int *ciclo,Stack *stack,int *cont, UF *uf) {
 
-	if(*cont < 1) {
+	if(*cont == 0) {
 		printf("\n\nFIM DO PROGRAMA!\n\n");
 		return 0;
 	}
@@ -851,10 +851,6 @@ int executa_pipeline_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int
 	// decodifica
 	decodificarInstrucao(reg->if_id.inst,inst,decod);
 
-	if(decod->rd == 0 && decod->opcode == 0) {
-		(*cont)--;
-	}
-
 	controle(decod->opcode, decod->funct, sinais);
 
 	if(sinais->EscPC == 1) {
@@ -890,9 +886,17 @@ int executa_pipeline_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int
 
 	// busca
 
-	strcpy(reg->if_id.inst, mi[reg->pc]);
+	if(reg->pc <= 256){
+	    strcpy(reg->if_id.inst, mi[reg->pc]);
+	} else {
+	    strcpy(reg->if_id.inst, "0000000000000000");
+	}
 	reg->if_id.pc = somador(reg->pc, 1);
 	printf("[IF] PC = %d\nInstrucao = %s\n", reg->pc, reg->if_id.inst);
+
+    if(strcmp(reg->if_id.inst, "0000000000000000") == 0){
+        (*cont)--;
+    }
 
 	(*ciclo)++;
 }
