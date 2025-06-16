@@ -522,6 +522,13 @@ void empilha(Stack *stack, Reg *reg, int *md) {
 	nNodo->id_ex.imm = reg->id_ex.imm;
 	nNodo->id_ex.rt = reg->id_ex.rt;
 	nNodo->id_ex.rd = reg->id_ex.rd;
+	
+	nNodo->ex_mem.memreg = reg->ex_mem.memreg;
+	nNodo->ex_mem.escreg = reg->ex_mem.escreg;
+	nNodo->ex_mem.escmem = reg->ex_mem.escmem;
+	nNodo->ex_mem.saidaula = reg->ex_mem.saidaula;
+	nNodo->ex_mem.b = reg->ex_mem.b;
+	nNodo->ex_mem.rd = reg->ex_mem.rd;
 
 	nNodo->prox = stack->topo;
 	stack->topo = nNodo;
