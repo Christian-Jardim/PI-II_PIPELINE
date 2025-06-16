@@ -834,6 +834,8 @@ int executa_pipeline_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int
 	}
 
 	// executa
+
+reg->ex_mem.rd = RegDest(reg->id_ex.rd, reg->id_ex.rt, reg->id_ex.regdest);
 	Forward(reg->id_ex.rs,reg->id_ex.rt,reg->ex_mem.rd,reg->mem_wb.rd,reg->id_ex.opcode,reg->id_ex.ulafonte,uf);
 
 	printf("\nUF A %d\n",uf->a);
@@ -853,8 +855,7 @@ int executa_pipeline_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int
 	reg->ex_mem.escmem = reg->id_ex.escmem;
 	reg->ex_mem.saidaula = ula_out->resultado;
 	reg->ex_mem.b = reg->id_ex.b;
-	reg->ex_mem.rd = RegDest(reg->id_ex.rd, reg->id_ex.rt, reg->id_ex.regdest);
-
+	
 	// decodifica
 	decodificarInstrucao(reg->if_id.inst,inst,decod);
 
