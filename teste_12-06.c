@@ -230,11 +230,11 @@ int main() {
 
 //FUNCOES IMPLEMENTADAS
 void menu() {
-    printf("\n1 - Carregar memoria de instrucoes\n");
-    printf("2 - Carregar memoria de dados\n");
-    printf("3 -  Imprimir memorias\n");
-    printf("8 - Executar ciclo\n");
-    printf("11 - Sair\n");
+	printf("\n1 - Carregar memoria de instrucoes\n");
+	printf("2 - Carregar memoria de dados\n");
+	printf("3 -  Imprimir memorias\n");
+	printf("8 - Executar ciclo\n");
+	printf("11 - Sair\n");
 }
 // carrega memoria de instrucoes a partir de um "arquivo.mem"
 int carregaMemInst(char mi[256][17]) {
@@ -550,17 +550,30 @@ int somador(int op1, int op2) {
 }
 
 void Forward(int rs, int rt, int rd_mem, int rd_wb, int opcode, int ulafonte, UF *uf) {
+    
+    printf("\nRS %d\n",rs);
+    printf("\nRT %d\n",rt);
+    printf("\nRD MEM %d\n",rd_mem);
+    printf("\nRD WB %d\n",rd_wb);
+    printf("\nRD OP %d\n",opcode);
+    printf("\nRD RESUL ULA %d\n",ulafonte);
+    
 	if (opcode == 4 || opcode == 11 || opcode == 15) {
 		uf->b = ulafonte;
 
-		if (rt != 0) {
-			if (rt == rd_wb) {
-				uf->a = 2;
-			} else if (rt == rd_mem) {
+		if (rs != 0) {
+		    if (rs == rd_mem) {
 				uf->a = 1;
 			} else {
 				uf->a = 0;
 			}
+			
+			if (rs == rd_wb) {
+				uf->a = 2;
+			} else {
+				uf->a = 0;
+			}
+
 		} else {
 			uf->a = 0;
 		}
@@ -568,23 +581,33 @@ void Forward(int rs, int rt, int rd_mem, int rd_wb, int opcode, int ulafonte, UF
 		if (rt != 0) {
 			if (rt == rd_mem) {
 				uf->b = 1;
-			} else if (rt == rd_wb) {
+			} else {
+				uf->b = ulafonte;
+			}
+			
+			if (rt == rd_wb) {
 				uf->b = 2;
 			} else {
-				uf->b = 0;
+				uf->b = ulafonte;
 			}
+
 		} else {
-			uf->b = 0;
+			uf->b = ulafonte;
 		}
 
 		if (rs != 0) {
-			if (rs == rd_wb) {
-				uf->a = 2;
-			} else if (rs == rd_mem) {
+		    if (rs == rd_mem) {
 				uf->a = 1;
 			} else {
 				uf->a = 0;
 			}
+			
+			if (rs == rd_wb) {
+				uf->a = 2;
+			} else {
+				uf->a = 0;
+			}
+			
 		} else {
 			uf->a = 0;
 		}
@@ -595,12 +618,6 @@ void Forward(int rs, int rt, int rd_mem, int rd_wb, int opcode, int ulafonte, UF
 int limite_back(Stack *stack) {
 	if(stack->topo==NULL) {
 		printf("\nVoce voltou ao inicio!");
-		return 1;
-	}
-}
-
-int UDH(int opcode) {
-	if(opcode == 11) {
 		return 1;
 	}
 }
@@ -732,26 +749,11 @@ int ULAFonteB(int b,int saidaula,int dado,int imm,int ULAFonte) {
 	}
 }
 
-void escreve_pc(int *pc, int op2, int EscPC) {
-	if(EscPC == 1) {
-		*pc = op2;
-	}
-}
-
-void escreve_br(int *reg, int dado, int EscReg) {
-	if(EscReg == 1) {
-		*reg = dado;
-	}
-}
-
-void escreve_md(int *index, int dado, int EscMem) {
-	if(EscMem == 1) {
-		*index = dado;
-	}
-}
-
 // Funcao ULA
 void ULA(int op1, int op2, int opULA, ULA_Out *ula_out) {
+
+	printf("\nOPERACAO ULA: %d %d %d\n",op1,opULA,op2);
+
 	switch(opULA) {
 	case 0:
 		ula_out->resultado = op1 + op2;
@@ -801,15 +803,16 @@ int executa_pipeline_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int
 	printf("\nEXECUTADO O CICLO %d\n",*ciclo);
 
 	empilha(stack, reg, md);
-	
+
 	// escreve no banco de registradores
+	dado = MemReg(reg->mem_wb.saidaula, reg->mem_wb.dadomem, reg->mem_wb.memreg);
 	if (reg->mem_wb.escreg) {
-		dado = MemReg(reg->mem_wb.saidaula, reg->mem_wb.dadomem, reg->mem_wb.memreg);
 		reg->br[reg->mem_wb.rd] = dado;
 		printf("[WB] Registrador[%d] = %d\n", reg->mem_wb.rd, dado);
 	}
 
 	// acessa memoria
+
 	if (reg->ex_mem.escmem) {
 		md[reg->ex_mem.saidaula] = reg->ex_mem.b;
 		printf("[MEM] Memoria[%d] = %d\n", reg->ex_mem.saidaula, reg->ex_mem.b);
@@ -832,10 +835,13 @@ int executa_pipeline_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int
 
 	// executa
 	Forward(reg->id_ex.rs,reg->id_ex.rt,reg->ex_mem.rd,reg->mem_wb.rd,reg->id_ex.opcode,reg->id_ex.ulafonte,uf);
-    
+
+	printf("\nUF A %d\n",uf->a);
+	printf("\nUF B %d\n",uf->b);
+
 	entradaA = ULAFonteA(reg->id_ex.a,reg->ex_mem.saidaula,dado,uf->a);
 	entradaB = ULAFonteB(reg->id_ex.b,reg->ex_mem.saidaula,dado,reg->id_ex.imm,uf->b);
-	
+
 	ULA(entradaA, entradaB, reg->id_ex.opula, ula_out);
 
 	if(*ciclo > 2) {
