@@ -164,6 +164,8 @@ int MemReg(int op2, int op1, int MemParaReg);
 int RegDest(int op2, int op1, int Reg_Dest);
 int ULAFonteA(int a,int saidaula,int dado,int ULAFonte);
 int ULAFonteB(int b,int imm,int saidaula,int dado,int ULAFonte);
+int NOP(int opcode, int rt, int rd, int sinal);
+int DC(int flag, int sinal);
 
 // PROGRAMA PRINCIPAL
 int main() {
@@ -256,9 +258,9 @@ int carregaMemInst(char mi[256][17],int *pc, int *cont,int *ciclo) {
 		printf("    Extensao de arquivo nao suportada!\n");
 		getchar();
 	} else {
-	    *pc = 0;
-	    *cont = 4;
-	    *ciclo = 1;
+		*pc = 0;
+		*cont = 4;
+		*ciclo = 1;
 		FILE *arq = fopen (arquivo, "r");
 		if (!arq)
 		{
@@ -535,13 +537,13 @@ void empilha(Stack *stack,Reg *reg,int *md,int *ciclo,int *cont) {
 	nNodo->ex_mem.saidaula = reg->ex_mem.saidaula;
 	nNodo->ex_mem.b = reg->ex_mem.b;
 	nNodo->ex_mem.rd = reg->ex_mem.rd;
-	
+
 	nNodo->mem_wb.memreg = reg->mem_wb.memreg;
 	nNodo->mem_wb.escreg = reg->mem_wb.escreg;
 	nNodo->mem_wb.dadomem = reg->mem_wb.dadomem;
 	nNodo->mem_wb.saidaula = reg->mem_wb.saidaula;
 	nNodo->mem_wb.rd = reg->mem_wb.rd;
-	
+
 	nNodo->ciclo = *ciclo;
 	nNodo->cont = *cont;
 
@@ -561,7 +563,7 @@ int step_back(Stack *stack, Reg *reg, int *md,int *ciclo,int *cont) {
 		md[i] = remover->md[i];
 	}
 
-    reg->pc = remover->pc;
+	reg->pc = remover->pc;
 
 	reg->if_id.pc = remover->if_id.pc;
 	strcpy(reg->if_id.inst,remover->if_id.inst);
@@ -586,13 +588,13 @@ int step_back(Stack *stack, Reg *reg, int *md,int *ciclo,int *cont) {
 	reg->ex_mem.saidaula = remover->ex_mem.saidaula;
 	reg->ex_mem.b = remover->ex_mem.b;
 	reg->ex_mem.rd = remover->ex_mem.rd;
-	
+
 	reg->mem_wb.memreg = remover->mem_wb.memreg;
 	reg->mem_wb.escreg = remover->mem_wb.escreg;
 	reg->mem_wb.dadomem = remover->mem_wb.dadomem;
 	reg->mem_wb.saidaula = remover->mem_wb.saidaula;
 	reg->mem_wb.rd = remover->mem_wb.rd;
-	
+
 	*ciclo = remover->ciclo;
 	*cont = remover->cont;
 
@@ -607,13 +609,6 @@ int somador(int op1, int op2) {
 }
 
 void Forward(int rs, int rt, int rd_mem, int rd_wb, int opcode, int ulafonte, UF *uf) {
-
-	printf("\nRS %d\n",rs);
-	printf("\nRT %d\n",rt);
-	printf("\nRD MEM %d\n",rd_mem);
-	printf("\nRD WB %d\n",rd_wb);
-	printf("\nRD OP %d\n",opcode);
-	printf("\nRD RESUL ULA %d\n",ulafonte);
 
 	if (opcode == 4 || opcode == 11 || opcode == 15) {
 		uf->b = ulafonte;
@@ -805,10 +800,36 @@ int ULAFonteB(int b,int saidaula,int dado,int imm,int ULAFonte) {
 	}
 }
 
+int NOP(int opcode, int rt, int rd, int sinal) {
+	switch(opcode) {
+	case 0:
+		if(rd == 0)
+			return 0;
+		else
+			return sinal;
+	case 4:
+		if(rt == 0)
+			return 0;
+		else
+			return sinal;
+	}
+}
+
+int DC(int flag, int sinal) {
+	switch(flag) {
+	case 0:
+		return sinal;
+	case 1:
+		return 0;
+	}
+}
+
 // Funcao ULA
 void ULA(int op1, int op2, int opULA, ULA_Out *ula_out) {
-
+    
 	printf("\nOPERACAO ULA: %d %d %d\n",op1,opULA,op2);
+
+    ula_out->flag_zero = 0;
 
 	switch(opULA) {
 	case 0:
@@ -850,7 +871,7 @@ void ULA(int op1, int op2, int opULA, ULA_Out *ula_out) {
 int executa_pipeline_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sinais *sinais,ULA_Out *ula_out,int *ciclo,Stack *stack,int *cont, UF *uf) {
 
 	if(*cont == 0) {
-		printf("\n\nO PROGRAMA ATUAL JÁ TERMINOU!\n\n");
+		printf("\n\nO PROGRAMA ATUAL FINALIZADO!\n\n");
 		return 0;
 	}
 
@@ -882,31 +903,30 @@ int executa_pipeline_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int
 	reg->mem_wb.saidaula = reg->ex_mem.saidaula;
 	reg->mem_wb.rd = reg->ex_mem.rd;
 
-	if(sinais->DI) {
-		reg->pc = decod->addr;
-		printf("[ID] Jump:\n\nPC = %d\n", reg->pc);
-	}
-	if(sinais->DC && ula_out->flag_zero) {
+    if(sinais->DC && ula_out->flag_zero) {
 		reg->pc = reg->pc + decod->imm;
 		printf("[EX] Branch:\n\nPC = %d\n", reg->pc);
 	}
 
+	if(sinais->DI) {
+		reg->pc = decod->addr;
+		printf("[ID] Jump:\n\nPC = %d\n", reg->pc);
+	}
+
 	// executa
-	printf("\nUF A %d\n",uf->a);
-	printf("\nUF B %d\n",uf->b);
 
 	entradaA = ULAFonteA(reg->id_ex.a,reg->ex_mem.saidaula,dado,uf->a);
 	entradaB = ULAFonteB(reg->id_ex.b,reg->ex_mem.saidaula,dado,reg->id_ex.imm,uf->b);
 
 	ULA(entradaA, entradaB, reg->id_ex.opula, ula_out);
 
-	if(*ciclo > 2) {
-		printf("[EX] ULA = %d\n", ula_out->resultado);
-	}
+	printf("[EX] ULA = %d\n", ula_out->resultado);
+	printf("[EX] FLAG ZERO = %d\n", ula_out->flag_zero);
+
+	reg->ex_mem.escreg = DC(ula_out->flag_zero, reg->id_ex.escreg);
+	reg->ex_mem.escmem = DC(ula_out->flag_zero, reg->id_ex.escmem);
 
 	reg->ex_mem.memreg = reg->id_ex.memreg;
-	reg->ex_mem.escreg = reg->id_ex.escreg;
-	reg->ex_mem.escmem = reg->id_ex.escmem;
 	reg->ex_mem.saidaula = ula_out->resultado;
 	reg->ex_mem.b = reg->id_ex.b;
 	reg->ex_mem.rd = RegDest(reg->id_ex.rd, reg->id_ex.rt, reg->id_ex.regdest);
@@ -924,19 +944,13 @@ int executa_pipeline_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int
 		reg->pc = reg->if_id.pc;
 	}
 
-	if(*ciclo > 1) {
-		printf("[ID] Instrucao: ");
-		printInstrucao(decod);
-		printf("\n");
-	}
+	printf("[ID] Instrucao: ");
+	printInstrucao(decod);
+	printf("\n");
 
-	if((decod->rd == 0 && decod->opcode == 0) || (decod->rt == 0 && decod->opcode == 4)) {
-		reg->id_ex.escreg = 0;
-		reg->id_ex.escmem = 0;
-	} else {
-		reg->id_ex.escreg = sinais->EscReg;
-		reg->id_ex.escmem = sinais->EscMem;
-	}
+	reg->id_ex.escreg = NOP(decod->opcode, decod->rt, decod->rs, sinais->EscReg);
+	reg->id_ex.escmem = NOP(decod->opcode, decod->rt, decod->rs, sinais->EscMem);
+
 	reg->id_ex.opcode = decod->opcode;
 	reg->id_ex.memreg = sinais->MemParaReg;
 	reg->id_ex.branch = sinais->DC;
@@ -961,14 +975,9 @@ int executa_pipeline_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int
 	reg->if_id.pc = somador(reg->pc, 1);
 	printf("[IF] PC = %d\nInstrucao = %s\n", reg->pc, reg->if_id.inst);
 
-
-	/*if(strcmp(reg->if_id.inst, "0000000000000000") == 0) {
-	        (*cont)--;
-	}*/
-    
-    if(*cont == 0) {
+	if(*cont == 0) {
 		printf("\n\nFIM DO PROGRAMA ATUAL!\n\n");
 	}
-    
+
 	(*ciclo)++;
 }
