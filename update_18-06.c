@@ -165,7 +165,7 @@ int MemReg(int op2, int op1, int MemParaReg);
 int RegDest(int op2, int op1, int Reg_Dest);
 int ULAFonteA(int a,int saidaula,int dado,int ULAFonte);
 int ULAFonteB(int b,int imm,int saidaula,int dado,int ULAFonte);
-int NOP(int opcode, int op_ant, int rt, int rd, int escreg, int escmem, int flag, int *reg, int *mem, int *escif);
+int NOP(int opcode, int op_ant, int rt, int rd, int escreg, int escmem, int flag, int *reg, int *mem, int *escif, Decod *decod, int *cont);
 int ESC_IF(int op_ant, int EscIF_ID, int comparacao);
 
 // PROGRAMA PRINCIPAL
@@ -809,14 +809,17 @@ int ULAFonteB(int b,int saidaula,int dado,int imm,int ULAFonte) {
 
 //NOP(decod->opcode, reg->id_ex.opcode, decod->rt, decod->rs, sinais->EscReg, sinais->EscMem,ula_out->flag_zero,&reg->id_ex.escreg,&reg->id_ex.escmem,&sinais->EscIF_ID);
 
-int NOP(int opcode, int op_ant, int rt, int rd, int escreg, int escmem, int flag, int *reg, int *mem, int *escif) {
+int NOP(int opcode, int op_ant, int rt, int rd, int escreg, int escmem, int flag, int *reg, int *mem, int *escif, Decod *decod, int *cont) {
 	printf("\n ESC REG %d\n",escreg);
 	if(op_ant == 8) {
 		if(flag) {
-			printf("\n 1\n");
+			printf("\nDESVIO FEITO!\nInstrucao [");
+			printInstrucao(decod);
+			printf("] foi tranformada em NOP!\n");
 			*reg = 0;
 			*mem = 0;
 			*escif = 0;
+			(*cont)--;
 		} else {
 			if(opcode == 0) {
 				if(rd == 0) {
@@ -995,15 +998,12 @@ int executa_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sina
 	printInstrucao(decod);
 	printf("\n");
 
-	NOP(decod->opcode, reg->id_ex.opcode, decod->rt, decod->rd, sinais->EscReg, sinais->EscMem,ula_out->flag_zero,&reg->id_ex.escreg,&reg->id_ex.escmem,&sinais->EscIF_ID);
+	NOP(decod->opcode, reg->id_ex.opcode, decod->rt, decod->rd, sinais->EscReg, sinais->EscMem,ula_out->flag_zero,&reg->id_ex.escreg,&reg->id_ex.escmem,&sinais->EscIF_ID, decod, cont);
 
 	/*if(reg->id_ex.opcode == 8 && ula_out->flag_zero == 1) {
 	    reg->id_ex.escreg = 0;
 	    reg->id_ex.escmem = 0;
 	}*/
-
-	printf("\nEsc Reg %d",reg->id_ex.escreg);
-	printf("\nEsc Mem %d\n",reg->id_ex.escmem);
 
 	reg->id_ex.opcode = decod->opcode;
 	reg->id_ex.memreg = sinais->MemParaReg;
@@ -1024,8 +1024,10 @@ int executa_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sina
 	if(reg->pc <= 256) {
 		if(sinais->EscIF_ID == 1)
 			strcpy(reg->if_id.inst, mi[reg->pc]);
-		else
+		else {
 			strcpy(reg->if_id.inst, "0000000000000000");
+			printf("\nDESVIO FEITO!\nInstrucao [%s] foi tranformada em NOP!\n",mi[reg->pc]);
+		}
 	} else {
 		strcpy(reg->if_id.inst, "0000000000000000");
 	}
