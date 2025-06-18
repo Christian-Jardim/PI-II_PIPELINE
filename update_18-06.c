@@ -528,7 +528,9 @@ void empilha(Stack *stack,Reg *reg,int *md,int *ciclo,int *cont) {
 	nNodo->id_ex.opula = reg->id_ex.opula;
 	nNodo->id_ex.a = reg->id_ex.a;
 	nNodo->id_ex.b = reg->id_ex.b;
+	nNodo->id_ex.opcode = reg->id_ex.opcode;
 	nNodo->id_ex.imm = reg->id_ex.imm;
+	nNodo->id_ex.rs = reg->id_ex.rs;
 	nNodo->id_ex.rt = reg->id_ex.rt;
 	nNodo->id_ex.rd = reg->id_ex.rd;
 
@@ -579,7 +581,9 @@ int step_back(Stack *stack, Reg *reg, int *md,int *ciclo,int *cont) {
 	reg->id_ex.opula = remover->id_ex.opula;
 	reg->id_ex.a = remover->id_ex.a;
 	reg->id_ex.b = remover->id_ex.b;
+	reg->id_ex.opcode = remover->id_ex.opcode;
 	reg->id_ex.imm = remover->id_ex.imm;
+	reg->id_ex.rs = remover->id_ex.rs;
 	reg->id_ex.rt = remover->id_ex.rt;
 	reg->id_ex.rd = remover->id_ex.rd;
 
@@ -810,7 +814,6 @@ int ULAFonteB(int b,int saidaula,int dado,int imm,int ULAFonte) {
 //NOP(decod->opcode, reg->id_ex.opcode, decod->rt, decod->rs, sinais->EscReg, sinais->EscMem,ula_out->flag_zero,&reg->id_ex.escreg,&reg->id_ex.escmem,&sinais->EscIF_ID);
 
 int NOP(int opcode, int op_ant, int rt, int rd, int escreg, int escmem, int flag, int *reg, int *mem, int *escif, Decod *decod, int *cont) {
-	printf("\n ESC REG %d\n",escreg);
 	if(op_ant == 8) {
 		if(flag) {
 			printf("\nDESVIO FEITO!\nInstrucao [");
@@ -823,7 +826,6 @@ int NOP(int opcode, int op_ant, int rt, int rd, int escreg, int escmem, int flag
 		} else {
 			if(opcode == 0) {
 				if(rd == 0) {
-					printf("\n 2\n");
 					*reg = 0;
 					*mem = escmem;
 					*escif = 1;
@@ -834,7 +836,6 @@ int NOP(int opcode, int op_ant, int rt, int rd, int escreg, int escmem, int flag
 				}
 			} else if(opcode == 4) {
 				if(rt == 0) {
-					printf("\n 3\n");
 					*reg = 0;
 					*mem = escmem;
 					*escif = 1;
@@ -858,67 +859,42 @@ int NOP(int opcode, int op_ant, int rt, int rd, int escreg, int escmem, int flag
 
 // Funcao ULA
 void ULA(int op1, int op2, int opULA, ULA_Out *ula_out) {
-
-	printf("\nOPERACAO ULA: %d %d %d\n",op1,opULA,op2);
-
 	ula_out->flag_zero = 0;
 
 	switch(opULA) {
 	case 0:
 		ula_out->resultado = op1 + op2;
-
 		if(ula_out->resultado == 0) {
 			ula_out->flag_zero = 1;
 		}
-
 		if ((op1 > 0 && op2 > 0 && ula_out->resultado < 0) || (op1 < 0 && op2 < 0 && ula_out->resultado > 0)) {
 			ula_out->overflow = 1;
 			printf("OVERFLOW - ADD: %d + %d = %d\n", op1, op2, ula_out->resultado);
 		}
 		break;
-
 	case 2:
 		ula_out->resultado = op1 - op2;
-
 		if(ula_out->resultado == 0) {
 			ula_out->flag_zero = 1;
 		}
-
 		if ((op1 > 0 && op2 < 0 && ula_out->resultado < 0) || (op1 < 0 && op2 > 0 && ula_out->resultado > 0)) {
 			ula_out->overflow = 1;
 			printf("OVERFLOW - SUB: %d - %d = %d\n", op1, op2, ula_out->resultado);
 		}
 		break;
-
 	case 4:
 		ula_out->resultado = op1 & op2;
 		break;
-
 	case 5:
 		ula_out->resultado = op1 | op2;
 		break;
 	}
 }
 
-int comparador(int op1, int op2) {
-	return op1 == op2;
-}
-
-int ESC_IF(int op_ant, int EscIF_ID, int comparacao) {
-	int zero = 0;
-	if(op_ant == 8) {
-		if(comparacao == 1)
-			return zero;
-		else
-			return EscIF_ID;
-	} else
-		return EscIF_ID;
-}
-
 int executa_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sinais *sinais,ULA_Out *ula_out,int *ciclo,Stack *stack,int *cont, UF *uf) {
 
 	if(*cont == 0) {
-		printf("\n\nO PROGRAMA ATUAL FINALIZADO!\n\n");
+		printf("\n\nPROGRAMA ATUAL FINALIZADO!\n\n");
 		return 0;
 	}
 
@@ -967,12 +943,6 @@ int executa_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sina
 
 	ULA(entradaA, entradaB, reg->id_ex.opula, ula_out);
 
-	/*printf("[EX] ULA = %d\n", ula_out->resultado);
-	printf("[EX] FLAG ZERO = %d\n", ula_out->flag_zero);
-
-	printf("\nEsc Reg %d",reg->id_ex.escreg);
-	printf("\nEsc Mem %d",reg->id_ex.escmem);*/
-
 	reg->ex_mem.escreg = reg->id_ex.escreg;
 	reg->ex_mem.escmem = reg->id_ex.escmem;
 
@@ -994,10 +964,6 @@ int executa_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sina
 		reg->pc = reg->if_id.pc;
 	}
 
-	printf("[ID] Instrucao: ");
-	printInstrucao(decod);
-	printf("\n");
-
 	NOP(decod->opcode, reg->id_ex.opcode, decod->rt, decod->rd, sinais->EscReg, sinais->EscMem,ula_out->flag_zero,&reg->id_ex.escreg,&reg->id_ex.escmem,&sinais->EscIF_ID, decod, cont);
 
 	/*if(reg->id_ex.opcode == 8 && ula_out->flag_zero == 1) {
@@ -1011,7 +977,7 @@ int executa_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sina
 	reg->id_ex.jump = sinais->DI;
 	reg->id_ex.regdest = sinais->RegDest;
 	reg->id_ex.ulafonte = sinais->ULAFonte;
-	reg->id_ex.opula = sinais->ULAOp;
+	
 	reg->id_ex.a = reg->br[decod->rs];
 	reg->id_ex.b = reg->br[decod->rt];
 	reg->id_ex.imm = decod->imm;
@@ -1032,11 +998,31 @@ int executa_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sina
 		strcpy(reg->if_id.inst, "0000000000000000");
 	}
 	reg->if_id.pc = somador(reg->pc, 1);
-	//printf("[IF] PC = %d\nInstrucao = %s\n", reg->pc, reg->if_id.inst);
-
+	printf("**** [IF] ****\nPC = %d\nInstrucao = %s\n", reg->pc, reg->if_id.inst);
+	printf("\n**** [ID] ****\nInstrucao: ");
+	printInstrucao(decod);
+	printf("\n");
+	printf("\n**** [EX] ****\n");
+	printf("\nOperacao feita: %d ",entradaA);
+	switch(reg->id_ex.opula) {
+	case 0:
+		printf("+");
+		break;
+	case 2:
+		printf("-");
+		break;
+	case 4:
+		printf("and");
+		break;
+	case 5:
+		printf("or");
+	}
+	printf(" %d = %d\n",entradaB,ula_out->resultado);
 	if(*cont == 0) {
 		printf("\n\nFIM DO PROGRAMA ATUAL!\n\n");
 	}
+
+    reg->id_ex.opula = sinais->ULAOp;
 
 	(*ciclo)++;
 }
