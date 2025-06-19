@@ -945,6 +945,20 @@ int executa_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sina
 
   ULA(entradaA, entradaB, reg->id_ex.opula, ula_out);
 
+  // tratamento de hazard de controle para beq
+  if (reg->id_ex.branch && ula_out->flag_zero){
+    printf("\n[HAZARD DE CONTROLE] - BEQ\n");
+    reg->pc = reg->if_id.pc + reg->id_ex.imm;
+    sinais->EscIF_ID = 0;
+  }
+
+  // tratamento de hazard de controle para jump
+  if (reg->id_ex.jump) {
+    printf("\n[HAZARD DE CONTROLE] - JUMP\n");
+    reg->pc = reg->id_ex.imm;
+    sinais->EscIF_ID = 0;
+  }
+
   reg->ex_mem.escreg = reg->id_ex.escreg;
   reg->ex_mem.escmem = reg->id_ex.escmem;
 
@@ -1180,15 +1194,19 @@ void visualizarPipeline(Reg *reg, int ciclo, UF *uf){
 
   //mostra hazards se existirem
   if (uf->a != 0 || uf->b != 0) {
-    printf("\nATENÇÃO: Hazards detectados!\n");
+    printf("\nHAZARD] Dependência de dados detectada:\n");
       
     if (uf->a == 1 || uf->b == 1) {
-      printf("- Hazard com estágio MEM (dependência de dados)\n");
+      printf("- Hazard com estágio MEM\n");
     }
     
     if (uf->a == 2 || uf->b == 2) {
-      printf("- Hazard com estágio WB (dependência de dados)\n");
+      printf("- Hazard com estágio WB\n");
     }
+  }
+
+  if ((reg->id_ex.branch && reg->ex_mem.saidaula == 0) || reg->id_ex.jump){
+    printf("\n[HAZARD] Controle detectado\n");
   }
 
   printf("\nLegenda:\n");
