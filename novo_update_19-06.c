@@ -1039,9 +1039,9 @@ void visualizarPipeline(Reg *reg, int ciclo, UF *uf) {
 	Decod decod_temp;
 	int valor;
 
-	printf("\n=== VISUALIZACCO DO PIPELINE (Ciclo %d) ===\n", ciclo);
+	printf("\n=== VISUALIZACAO DO PIPELINE (Ciclo %d) ===\n", ciclo);
 	printf("+-----------+---------------------+-------------------------------------+\n");
-	printf("| EstC!gio   | InstruC'C#o Atual     | Detalhes da ExecuC'C#o                |\n");
+	printf("| Estagio   | Instrucao Atual     | Detalhes da Execucao                |\n");
 	printf("+-----------+---------------------+-------------------------------------+\n");
 
 	//estagio if - busca da instrucao
@@ -1056,7 +1056,7 @@ void visualizarPipeline(Reg *reg, int ciclo, UF *uf) {
 	}
 
 	else {
-		printf("NOP                 | EstC!gio vazio ou instruC'C#o NOP");
+		printf("NOP                 | Estagio vazio ou instrucao NOP");
 	}
 	printf("\n");
 
@@ -1066,7 +1066,7 @@ void visualizarPipeline(Reg *reg, int ciclo, UF *uf) {
 
 		switch(reg->id_ex.opcode) {
 		case 0:
-			printf("Tipo R             | ");
+			printf("R                  | ");
 			break;
 		case 4:
 			printf("ADDI               | ");
@@ -1084,7 +1084,7 @@ void visualizarPipeline(Reg *reg, int ciclo, UF *uf) {
 			printf("J                  | ");
 			break;
 		default:
-			printf("InstruC'C#o Desconhecida| ");
+			printf("Instrucao Desconhecida| ");
 			break;
 
 			printf(", $%d", reg->id_ex.rd);
@@ -1092,7 +1092,7 @@ void visualizarPipeline(Reg *reg, int ciclo, UF *uf) {
 	}
 
 	else {
-		printf("NOP                 | EstC!gio vazio ou instruC'C#o NOP");
+		printf("NOP                 | Estagio vazio ou instrucao NOP");
 	}
 	printf("\n");
 
@@ -1101,11 +1101,11 @@ void visualizarPipeline(Reg *reg, int ciclo, UF *uf) {
 	if (reg->ex_mem.rd != 0 || reg->ex_mem.escmem) {
 		if (reg->ex_mem.escmem) {
 			printf("SW                  | ");
-			printf("Calculando endereC'o: %d + %d", reg->id_ex.a, reg->id_ex.imm);
+			printf("Calculando endereco: %d + %d", reg->id_ex.a, reg->id_ex.imm);
 		}
 
 		else {
-			printf("OperaC'C#o ULA        | ");
+			printf("Operacao ULA        | ");
 
 			//mostra a operacao sendo executada
 			switch(reg->id_ex.opula) {
@@ -1126,19 +1126,19 @@ void visualizarPipeline(Reg *reg, int ciclo, UF *uf) {
 				break;
 
 			default:
-				printf("OperaC'C#o Desconhecida");
+				printf("Operacao Desconhecida");
 				break;
 			}
 		}
 	}
 
 	else {
-		printf("NOP                 | EstC!gio vazio ou instruC'C#o NOP");
+		printf("NOP                 | Estagio vazio ou instrucao NOP");
 	}
 	printf("\n");
 
 	//estagio mem - acesso a memoria
-	printf("| MemC3ria   | ");
+	printf("| Memoria   | ");
 	if (reg->ex_mem.escmem) {
 		printf("SW                  | ");
 		printf("Escrevendo %d na mem[%d]", reg->ex_mem.b, reg->ex_mem.saidaula);
@@ -1150,12 +1150,12 @@ void visualizarPipeline(Reg *reg, int ciclo, UF *uf) {
 	}
 
 	if (reg->ex_mem.rd != 0) {
-		printf("OperaC'C#o ULA        | ");
+		printf("Operacao ULA        | ");
 		printf("Resultado: %d (para $%d)", reg->ex_mem.saidaula, reg->ex_mem.rd);
 	}
 
 	else {
-		printf("NOP                 | EstC!gio vazio ou instruC'C#o NOP");
+		printf("NOP                 | Estagio vazio ou instrucao NOP");
 	}
 	printf("\n");
 
@@ -1169,14 +1169,14 @@ void visualizarPipeline(Reg *reg, int ciclo, UF *uf) {
 
 		else {
 			valor = reg->mem_wb.dadomem;
-			printf("Dado da memC3ria     | ");
+			printf("Dado da memoria     | ");
 		}
 
 		printf("Escrevendo %d em $%d", valor, reg->mem_wb.rd);
 	}
 
 	else {
-		printf("NOP                 | EstC!gio vazio ou instruC'C#o NOP");
+		printf("NOP                 | Estagio vazio ou instrucao NOP");
 	}
 	printf("\n");
 
@@ -1184,20 +1184,20 @@ void visualizarPipeline(Reg *reg, int ciclo, UF *uf) {
 	printf("+-----------+---------------------+-------------------------------------+\n");
 
 	//mostra informaC'C5es adicionais
-	printf("\nInformaC'C5es Adicionais:\n");
+	printf("\nInformacoes Adicionais:\n");
 	printf("- PC atual: %d\n", reg->pc);
-	printf("- PrC3xima instruC'C#o: %d\n", reg->if_id.pc);
+	printf("- Proxima instrucao: %d\n", reg->if_id.pc);
 
 	//mostra hazards se existirem
 	if (uf->a != 0 || uf->b != 0) {
-		printf("\nHAZARD] DependC*ncia de dados detectada:\n");
+		printf("\n[HAZARD] Dependencia de dados detectada:\n");
 
 		if (uf->a == 1 || uf->b == 1) {
-			printf("- Hazard com estC!gio MEM\n");
+			printf("- Hazard com estagio MEM\n");
 		}
 
 		if (uf->a == 2 || uf->b == 2) {
-			printf("- Hazard com estC!gio WB\n");
+			printf("- Hazard com estagio WB\n");
 		}
 	}
 
@@ -1206,9 +1206,9 @@ void visualizarPipeline(Reg *reg, int ciclo, UF *uf) {
 	}
 
 	printf("\nLegenda:\n");
-	printf("- NOP: EstC!gio vazio ou instruC'C#o que nC#o faz nada\n");
-	printf("- Tipo R: InstruC'C5es como add, sub, and, or\n");
-	printf("- lw/sw: Acesso C  memC3ria (load/store)\n");
+	printf("- NOP: Estagio vazio ou instrucao que nao faz nada\n");
+	printf("- Tipo R: Instrucoes como add, sub, and, or\n");
+	printf("- lw/sw: Acesso a memoria (load/store)\n");
 	printf("- beq: Desvio condicional\n");
 	printf("- j: Salto incondicional\n");
 }
