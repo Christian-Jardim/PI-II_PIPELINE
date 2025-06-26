@@ -135,7 +135,7 @@ void errorwin();
 void printInstrucaoNcurses(WINDOW *win, int linha, int index, char *bin, Decod *decod);
 void printImemory(char mi[256][17], Inst *inst, Decod *decod);
 void printDmemory(int *md);
-void infoPipeline(Reg *reg, int ciclo, UF *uf, WINDOW *win);
+void infoPipeline(Reg *reg, int ciclo, UF *uf, WINDOW *win, int entradaA, int entradaB);
 
 int carregaMemInst(char mi[256][17]);
 void carregarMemoriaDados(int md[256]);
@@ -1007,7 +1007,7 @@ int executa_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sina
   (*ciclo)++;
 
   WINDOW *pipewin = newwin(30, 76, 15, 0);  // altura, largura, y, x
-  infoPipeline(reg, *ciclo - 1, uf, pipewin);
+  infoPipeline(reg, *ciclo - 1, uf, pipewin, entradaA, entradaB);
   delwin(pipewin);
 }
 
@@ -1370,7 +1370,7 @@ void printDmemory(int *md) {
 	delwin(memWinD);
 }
 
-void infoPipeline(Reg *reg, int ciclo, UF *uf, WINDOW *win) {
+void infoPipeline(Reg *reg, int ciclo, UF *uf, WINDOW *win, int entradaA, int entradaB) {
     werase(win);
     box(win, 0, 0);
     int linha = 1;
@@ -1440,7 +1440,7 @@ void infoPipeline(Reg *reg, int ciclo, UF *uf, WINDOW *win) {
                 case 5: op = "OR"; break;
                 default: op = "Desconhecida"; break;
             }
-            mvwprintw(win, linha - 1, 15, "Operacao ULA        | %s: %d e %d                           |", op, reg->id_ex.a, b);
+            mvwprintw(win, linha - 1, 15, "Operacao ULA        | %s: %d e %d                           |", op, entradaA, entradaB);
         }
     } else {
         mvwprintw(win, linha - 1, 15, "NOP                 | Estagio vazio ou instrucao NOP       |");
