@@ -24,13 +24,6 @@ typedef struct unidaded_forwarding {
   int a,b;
 } UF;
 
-typedef struct inst {
-  char instIF_ID[17],
-       instID_EX[17],
-       instEX_MEM[17],
-       instMEM_WB[17];
-} InstView;
-
 typedef struct if_id {
   int pc;
   char inst[17];
@@ -52,6 +45,7 @@ typedef struct id_ex {
       rs,
       rt,
       rd;
+  char instID_EX[17];
 } ID_EX;
 
 typedef struct ex_mem {
@@ -61,6 +55,7 @@ typedef struct ex_mem {
       saidaula,
       b,
       rd;
+  char instEX_MEM[17];
 } EX_MEM;
 
 typedef struct mem_wb {
@@ -69,6 +64,7 @@ typedef struct mem_wb {
       dadomem,
       saidaula,
       rd;
+  char instMEM_WB[17];
 } MEM_WB;
 
 typedef struct registradores {
@@ -135,7 +131,7 @@ typedef struct pilha {
 //ASSINATURA DAS FUNCOES
 
 int menu();
-void infoWin(Reg *reg, InstView *instView, Decod *decod, Inst *inst);
+void infoWin(Reg *reg, Decod *decod, Inst *inst);
 void printAssemblyNcurses(WINDOW *win, int linha, int index, char *bin, Decod *decod);
 void inputJanelaArquivo(char *buffer, int maxlen);
 void errorwin();
@@ -171,7 +167,7 @@ void salvarMemDados(int *md);
 
 void controle(int opcode, int funct, Sinais *sinais);
 
-int executa_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sinais *sinais,ULA_Out *ula_out,int *ciclo,Stack *stack,int *cont,UF *uf, InstView *instView);
+int executa_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sinais *sinais,ULA_Out *ula_out,int *ciclo,Stack *stack,int *cont,UF *uf);
 
 void escreve_br(int *reg, int dado, int EscReg);
 void escreve_md(int *index, int dado, int EscMem);
@@ -191,7 +187,6 @@ int main() {
   Sinais sinais;
   UF uf = {0};
   Inst inst;
-  InstView instView;
   Decod decod;
   Stack stack;
   Reg reg = {0};
@@ -228,51 +223,46 @@ int main() {
       keypad(stdscr, TRUE); 
       printImemory(mi, &inst, &decod);
       printDmemory(md);
+      getch();
       endwin();
       clear();         
       refresh();
       printf("\033[H\033[J");
       break;
     case 4:
-      infoWin(&reg, &instView, &decod, &inst);
+      infoWin(&reg, &decod, &inst);
       clear();         
       refresh();
 			printf("\033[H\033[J");
       break;
     case 5:
-      //printMemory(mi, &inst, &decod);
-      //printmemory(md);
-      //printReg(&reg);
-      //printf("\n\nPC: %d\n", reg.pc);
-      break;
-    case 6:
       salvarAssembly(mi);
       break;
-    case 7:
+    case 6:
       salvarMemDados(md);
       break;
-    case 8:
+    case 7:
       break;
-    case 9:
+    case 8:
       initscr();             
       cbreak();              
       noecho();              
       curs_set(0);           
       keypad(stdscr, TRUE); 
-      executa_ciclo(mi,&inst,&decod,&reg,md,&sinais,&ula_out,&ciclo,&stack,&cont,&uf,&instView);
+      executa_ciclo(mi,&inst,&decod,&reg,md,&sinais,&ula_out,&ciclo,&stack,&cont,&uf);
       endwin();
       clear();         
       refresh();
       printf("\033[H\033[J");
       break;
-    case 10:
+    case 9:
       step_back(&stack,&reg,md,&ciclo,&cont);
       break;
-    case 11:
+    case 10:
       printf("Voce saiu!!!\n");
       break;
     }
-  } while(op != 11);
+  } while(op != 10);
   return 0;
 }
 
@@ -555,7 +545,9 @@ void empilha(Stack *stack,Reg *reg,int *md,int *ciclo,int *cont) {
 
   nNodo->if_id.pc = reg->if_id.pc;
   strcpy(nNodo->if_id.inst,reg->if_id.inst);
+  //strcpy(nNodo->instview.instIF_ID, instview->instIF_ID);
 
+  strcpy(nNodo->id_ex.instID_EX, reg->id_ex.instID_EX);
   nNodo->id_ex.memreg = reg->id_ex.memreg;
   nNodo->id_ex.escreg = reg->id_ex.escreg;
   nNodo->id_ex.branch = reg->id_ex.branch;
@@ -572,6 +564,7 @@ void empilha(Stack *stack,Reg *reg,int *md,int *ciclo,int *cont) {
   nNodo->id_ex.rt = reg->id_ex.rt;
   nNodo->id_ex.rd = reg->id_ex.rd;
 
+  strcpy(nNodo->ex_mem.instEX_MEM, reg->ex_mem.instEX_MEM);
   nNodo->ex_mem.memreg = reg->ex_mem.memreg;
   nNodo->ex_mem.escreg = reg->ex_mem.escreg;
   nNodo->ex_mem.escmem = reg->ex_mem.escmem;
@@ -579,6 +572,7 @@ void empilha(Stack *stack,Reg *reg,int *md,int *ciclo,int *cont) {
   nNodo->ex_mem.b = reg->ex_mem.b;
   nNodo->ex_mem.rd = reg->ex_mem.rd;
 
+  strcpy(nNodo->mem_wb.instMEM_WB,reg->mem_wb.instMEM_WB);
   nNodo->mem_wb.memreg = reg->mem_wb.memreg;
   nNodo->mem_wb.escreg = reg->mem_wb.escreg;
   nNodo->mem_wb.dadomem = reg->mem_wb.dadomem;
@@ -608,7 +602,9 @@ int step_back(Stack *stack, Reg *reg, int *md,int *ciclo,int *cont) {
 
   reg->if_id.pc = remover->if_id.pc;
   strcpy(reg->if_id.inst,remover->if_id.inst);
-
+  //strcpy(instview->instIF_ID, remover->instview.instIF_ID);
+  
+  strcpy(reg->id_ex.instID_EX, remover->id_ex.instID_EX);
   reg->id_ex.memreg = remover->id_ex.memreg;
   reg->id_ex.escreg = remover->id_ex.escreg;
   reg->id_ex.branch = remover->id_ex.branch;
@@ -625,6 +621,7 @@ int step_back(Stack *stack, Reg *reg, int *md,int *ciclo,int *cont) {
   reg->id_ex.rt = remover->id_ex.rt;
   reg->id_ex.rd = remover->id_ex.rd;
 
+  strcpy(reg->ex_mem.instEX_MEM, remover->ex_mem.instEX_MEM);
   reg->ex_mem.memreg = remover->ex_mem.memreg;
   reg->ex_mem.escreg = remover->ex_mem.escreg;
   reg->ex_mem.escmem = remover->ex_mem.escmem;
@@ -632,6 +629,7 @@ int step_back(Stack *stack, Reg *reg, int *md,int *ciclo,int *cont) {
   reg->ex_mem.b = remover->ex_mem.b;
   reg->ex_mem.rd = remover->ex_mem.rd;
 
+  strcpy(reg->mem_wb.instMEM_WB, remover->mem_wb.instMEM_WB);
   reg->mem_wb.memreg = remover->mem_wb.memreg;
   reg->mem_wb.escreg = remover->mem_wb.escreg;
   reg->mem_wb.dadomem = remover->mem_wb.dadomem;
@@ -929,7 +927,7 @@ void ULA(int op1, int op2, int opULA, ULA_Out *ula_out) {
   }
 }
 
-int executa_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sinais *sinais,ULA_Out *ula_out,int *ciclo,Stack *stack,int *cont, UF *uf, InstView *instView) {
+int executa_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sinais *sinais,ULA_Out *ula_out,int *ciclo,Stack *stack,int *cont, UF *uf) {
 
   if(*cont == 0) {
     printf("\n\nPROGRAMA ATUAL FINALIZADO!\n\n");
@@ -944,7 +942,7 @@ int executa_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sina
 
   // escreve no banco de registradores
 
-  strcpy(instView->instMEM_WB, instView->instEX_MEM); ///////////////////////////////////
+  strcpy(reg->mem_wb.instMEM_WB, reg->ex_mem.instEX_MEM); ///////////////////////////////////
 
   dado = MemReg(reg->mem_wb.saidaula, reg->mem_wb.dadomem, reg->mem_wb.memreg);
   if (reg->mem_wb.escreg) {
@@ -979,7 +977,7 @@ int executa_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sina
 
   // executa
 
-  strcpy(instView->instEX_MEM, instView->instID_EX); ///////////////////////////////////
+  strcpy(reg->ex_mem.instEX_MEM, reg->id_ex.instID_EX); ///////////////////////////////////
 
   entradaA = ULAFonteA(reg->id_ex.a,reg->ex_mem.saidaula,dado,uf->a);
   entradaB = ULAFonteB(reg->id_ex.b,reg->ex_mem.saidaula,dado,reg->id_ex.imm,uf->b);
@@ -1011,7 +1009,7 @@ int executa_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sina
   // decodifica
   decodificarInstrucao(reg->if_id.inst,inst,decod);
 
-  strcpy(instView->instID_EX, instView->instIF_ID); ///////////////////////////////////
+  strcpy(reg->id_ex.instID_EX, reg->if_id.inst); ///////////////////////////////////
 
   if(decod->opcode == 0 && decod->rd == 0) {
     (*cont)--;
@@ -1058,9 +1056,6 @@ int executa_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sina
   }
   reg->if_id.pc = somador(reg->pc, 1);
   printf("**** [IF] ****\nPC = %d\nInstrucao = %s\n", reg->pc, reg->if_id.inst);
-
-  strcpy(instView->instIF_ID, reg->if_id.inst); ///////////////////////////////////
-
   printf("\n**** [ID] ****\nInstrucao: ");
   printInstrucao(decod);
   printf("\n");
@@ -1107,13 +1102,12 @@ int menu() {
 		"2 - Carregar memoria de dados",
 		"3 - Imprimir memorias",
 		"4 - Imprimir banco de registradores",
-		"5 - Imprimir todo o simulador",
-		"6 - Salvar .asm",
-		"7 - Salvar .dat",
-		"8 - Executar programa",
-		"9 - Executar instrucao",
-		"10 - Volta uma instrucao",
-		"11 - Sair"
+		"5 - Salvar .asm",
+		"6 - Salvar .dat",
+		"7 - Executar programa",
+		"8 - Executar instrucao",
+		"9 - Volta um ciclo",
+		"10 - Sair"
 	};
 	int n_opcoes = sizeof(opcoes) / sizeof(opcoes[0]);
 	int escolha = 0;
@@ -1203,7 +1197,7 @@ void errorwin() {
 }
 
 //janela de registradores e informacoes
-void infoWin(Reg *reg, InstView *instView, Decod *decod, Inst *inst) {
+void infoWin(Reg *reg, Decod *decod, Inst *inst) {
 	initscr();
 	curs_set(0);
 	
@@ -1232,19 +1226,18 @@ void infoWin(Reg *reg, InstView *instView, Decod *decod, Inst *inst) {
 	box(infowin1, 0, 0);
 	mvwprintw(infowin1, l1++, 1, ">>>>>>>>>>> IF -> ID <<<<<<<<<<<");
   l1++;
-  mvwprintw(infowin1, l1++, 3, "INST ------- %s", instView->instIF_ID);
-  decodificarInstrucao(instView->instIF_ID, inst, decod);
-	printAssemblyNcurses(infowin1, l1++, 3, instView->instIF_ID, decod);
-  //mvwprintw(infowin1, l1++, 3, "INST ------- %s", reg->if_id.inst);
+  mvwprintw(infowin1, l1++, 3, "INST ------- %s", reg->if_id.inst);
+  decodificarInstrucao(reg->if_id.inst, inst, decod);
+	printAssemblyNcurses(infowin1, l1++, 3, reg->if_id.inst, decod);
 
 	// ID -> EX
 	int l2 = 1;
 	box(infowin2, 0, 0);
 	mvwprintw(infowin2, l2++, 1, ">>>>>>>>>>> ID -> EX <<<<<<<<<<<");
   l2++;
-  mvwprintw(infowin2, l2++, 3, "INST ------- %s", instView->instID_EX);
-  decodificarInstrucao(instView->instID_EX, inst, decod);
-  printAssemblyNcurses(infowin2, l2++, 3, instView->instID_EX, decod);
+  mvwprintw(infowin2, l2++, 3, "INST ------- %s", reg->id_ex.instID_EX);
+  decodificarInstrucao(reg->id_ex.instID_EX, inst, decod);
+  printAssemblyNcurses(infowin2, l2++, 3, reg->id_ex.instID_EX, decod);
 	mvwprintw(infowin2, l2++, 3, "memreg ----- %d", reg->id_ex.memreg);
 	mvwprintw(infowin2, l2++, 3, "escreg ----- %d", reg->id_ex.escreg);
 	mvwprintw(infowin2, l2++, 3, "branch ----- %d", reg->id_ex.branch);
@@ -1266,9 +1259,9 @@ void infoWin(Reg *reg, InstView *instView, Decod *decod, Inst *inst) {
 	box(infowin3, 0, 0);
 	mvwprintw(infowin3, l3++, 1, ">>>>>>>>>>> EX -> MEM <<<<<<<<<<");
   l3++;
-  mvwprintw(infowin3, l3++, 3, "INST ------- %s", instView->instEX_MEM);
-  decodificarInstrucao(instView->instEX_MEM, inst, decod);
-  printAssemblyNcurses(infowin3, l3++, 3, instView->instEX_MEM, decod);
+  mvwprintw(infowin3, l3++, 3, "INST ------- %s", reg->ex_mem.instEX_MEM);
+  decodificarInstrucao(reg->ex_mem.instEX_MEM, inst, decod);
+  printAssemblyNcurses(infowin3, l3++, 3, reg->ex_mem.instEX_MEM, decod);
 	mvwprintw(infowin3, l3++, 3, "memreg ----- %d", reg->ex_mem.memreg);
 	mvwprintw(infowin3, l3++, 3, "escreg ----- %d", reg->ex_mem.escreg);
 	mvwprintw(infowin3, l3++, 3, "escmem ----- %d", reg->ex_mem.escmem);
@@ -1281,9 +1274,9 @@ void infoWin(Reg *reg, InstView *instView, Decod *decod, Inst *inst) {
 	box(infowin4, 0, 0);
 	mvwprintw(infowin4, l4++, 1, ">>>>>>>>>>> MEM -> WB <<<<<<<<<<");
   l4++;
-  mvwprintw(infowin4, l4++, 3, "INST ------- %s", instView->instMEM_WB);
-  decodificarInstrucao(instView->instMEM_WB, inst, decod);
-  printAssemblyNcurses(infowin4, l4++, 3, instView->instMEM_WB, decod);
+  mvwprintw(infowin4, l4++, 3, "INST ------- %s", reg->mem_wb.instMEM_WB);
+  decodificarInstrucao(reg->mem_wb.instMEM_WB, inst, decod);
+  printAssemblyNcurses(infowin4, l4++, 3, reg->mem_wb.instMEM_WB, decod);
 	mvwprintw(infowin4, l4++, 3, "memreg ----- %d", reg->mem_wb.memreg);
 	mvwprintw(infowin4, l4++, 3, "escreg ----- %d", reg->mem_wb.escreg);
 	mvwprintw(infowin4, l4++, 3, "dadomem ---- %d", reg->mem_wb.dadomem);
@@ -1423,14 +1416,13 @@ void printImemory(char mi[256][17], Inst *inst, Decod *decod) {
 
 	mvwprintw(memWin, linha++, deslocamentoX, "------ Fim das instrucoes validas ------");
 	wrefresh(memWin);
-	wgetch(memWin);
 	delwin(memWin);
 }
 
 // imprime memoria de dados
 void printDmemory(int *md) {
   WINDOW *memWinD = newwin(36, 83, 1, 45);
-	box(memWinD, 0, '=');
+	box(memWinD, 0, 0);
 
   mvwprintw(memWinD, 1, 18.5, "############## MEMORIA DE DADOS ##############");
   int linha = 3;
@@ -1443,7 +1435,6 @@ void printDmemory(int *md) {
     }
   }
 	wrefresh(memWinD);
-	wgetch(memWinD);
 	delwin(memWinD);
 }
 
