@@ -37,6 +37,7 @@ typedef struct id_ex {
       ulafonte,
       opula,
       opcode,
+pc,
       a,
       b,
       imm,
@@ -957,7 +958,7 @@ int executa_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sina
   entradaB = ULAFonteB(reg->id_ex.b,reg->ex_mem.saidaula,dado,reg->id_ex.imm,uf->b);
 
   ULA(entradaA, entradaB, reg->id_ex.opula, ula_out);
-  dc = reg->if_id.pc + reg->id_ex.imm;
+  dc = reg->id_ex.pc + reg->id_ex.imm;
 
   reg->ex_mem.escreg = reg->id_ex.escreg;
   reg->ex_mem.escmem = reg->id_ex.escmem;
@@ -984,7 +985,7 @@ int executa_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sina
   reg->id_ex.jump = sinais->DI;
   reg->id_ex.regdest = sinais->RegDest;
   reg->id_ex.ulafonte = sinais->ULAFonte;
-
+  reg->id_ex.pc = reg->if_id.pc;
   reg->id_ex.a = reg->br[decod->rs];
   reg->id_ex.b = reg->br[decod->rt];
   reg->id_ex.imm = decod->imm;
