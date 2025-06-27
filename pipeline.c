@@ -239,6 +239,7 @@ int main() {
       salvarMemDados(md);
       break;
     case 7:
+      executa_programa(mi,&inst,&decod,&reg,md,&sinais,&ula_out,&ciclo,&stack,&uf);
       break;
     case 8:
       initscr();             
@@ -914,8 +915,7 @@ int FontePC2(int fonte, int imm, int jump) {
 }
 
 void executa_programa(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sinais *sinais,ULA_Out *ula_out,int *ciclo,Stack *stack,UF *uf) {
-	while(executa_ciclo(mi,&inst,&decod,&reg,md,&sinais,&ula_out,&ciclo,&stack,&uf) != 1){
-}
+	while(executa_ciclo(mi,&inst,&decod,&reg,md,&sinais,&ula_out,&ciclo,&stack,&uf) != 1)
 }
 
 int executa_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sinais *sinais,ULA_Out *ula_out,int *ciclo,Stack *stack, UF *uf) {
@@ -1036,7 +1036,7 @@ int menu() {
 		"5 - Salvar .asm",
 		"6 - Salvar .dat",
 		"7 - Executar programa",
-		"8 - Executar instrucao",
+		"8 - Executar ciclo",
 		"9 - Volta um ciclo",
 		"10 - Sair"
 	};
@@ -1094,7 +1094,7 @@ void inputJanelaArquivo(char *buffer, int maxlen) {
   WINDOW *inputwin = newwin(altura, largura, 16, 0);
   box(inputwin, 0, 0);
 
-  mvwprintw(inputwin, 1, 2, "Digite o nome do arquivo de instrucoes:");
+  mvwprintw(inputwin, 1, 2, "Digite o nome do arquivo:");
   mvwprintw(inputwin, 3, 2, ">>> ");
   echo(); // Mostra o que o usuário digita
 
