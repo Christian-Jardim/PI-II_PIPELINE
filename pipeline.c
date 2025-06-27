@@ -577,6 +577,10 @@ int NOP(int opcode, int op_ant, int rd, int escreg, int escmem, int flag, int *r
       *reg = 0;
       *mem = 0;
     } else {
+if(opcode == 2) {
+	*reg = 0;
+  *mem = 0;
+} else {
       if(opcode == 0) {
         if(rd == 0) {
           *reg = 0;
@@ -594,6 +598,7 @@ int NOP(int opcode, int op_ant, int rd, int escreg, int escmem, int flag, int *r
     *reg = escreg;
     *mem = escmem;
   }
+}
 }
 
 // Funcao ULA
