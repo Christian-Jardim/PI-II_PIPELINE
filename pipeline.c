@@ -915,7 +915,7 @@ int FontePC2(int fonte, int imm, int jump) {
 
 int executa_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sinais *sinais,ULA_Out *ula_out,int *ciclo,Stack *stack, UF *uf) {
 
-  if(reg->br[8] == 10) {
+  if(reg->br[7] == 10) {
     printf("\n\nPROGRAMA ATUAL FINALIZADO!\n\n");
     return 0;
   }
