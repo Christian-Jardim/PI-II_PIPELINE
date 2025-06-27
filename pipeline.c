@@ -915,7 +915,8 @@ int FontePC2(int fonte, int imm, int jump) {
 }
 
 void executa_programa(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sinais *sinais,ULA_Out *ula_out,int *ciclo,Stack *stack,UF *uf) {
-	while(executa_ciclo(mi,&inst,&decod,&reg,md,&sinais,&ula_out,&ciclo,&stack,&uf) != 1)
+	while(executa_ciclo(mi,inst,decod,reg,md,sinais,ula_out,ciclo,stack,uf) != 1){
+	}
 }
 
 int executa_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sinais *sinais,ULA_Out *ula_out,int *ciclo,Stack *stack, UF *uf) {
