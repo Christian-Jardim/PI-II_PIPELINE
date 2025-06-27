@@ -1027,7 +1027,7 @@ int menu() {
                 "6 - Salvar .dat",
                 "7 - Executar ciclo",
                 "8 - Volta um ciclo",
-								"9 - Sair";
+								"9 - Sair",
         };
         int n_opcoes = sizeof(opcoes) / sizeof(opcoes[0]);
         int escolha = 0;
