@@ -128,6 +128,7 @@ void printInstrucaoNcurses(WINDOW *win, int linha, int index, char *bin, Decod *
 void printImemory(char mi[256][17], Inst *inst, Decod *decod);
 void printDmemory(int *md);
 void infoPipeline(Reg *reg, int ciclo, UF *uf, WINDOW *win, int entradaA, int entradaB);
+void mensagem_finalizacao();
 
 int carregaMemInst(char mi[256][17]);
 void carregarMemoriaDados(int md[256]);
