@@ -68,10 +68,7 @@ int main() {
     case 6:
       salvarMemDados(md);
       break;
-    case 7:
-      
-      break;
-    case 8:
+   case 7:
       initscr();             
       cbreak();              
       noecho();              
@@ -83,13 +80,13 @@ int main() {
       refresh();
       printf("\033[H\033[J");
       break;
-    case 9:
+    case 8:
       step_back(&stack,&reg,md,&ciclo);
       break;
-    case 10:
+    case 9:
       printf("Voce saiu!!!\n");
       break;
     }
-  } while(op != 10);
+  } while(op != 9);
   return 0;
 }
