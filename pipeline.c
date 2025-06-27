@@ -166,7 +166,6 @@ void salvarMemDados(int *md);
 void controle(int opcode, int funct, Sinais *sinais);
 
 int executa_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sinais *sinais,ULA_Out *ula_out,int *ciclo,Stack *stack,UF *uf);
-void executa_programa(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sinais *sinais,ULA_Out *ula_out,int *ciclo,Stack *stack,UF *uf);
 
 //MUX
 int MemReg(int op2, int op1, int MemParaReg);
@@ -230,7 +229,7 @@ int main() {
       infoWin(&reg, &decod, &inst);
       clear();         
       refresh();
-			printf("\033[H\033[J");
+      printf("\033[H\033[J");
       break;
     case 5:
       salvarAssembly(mi);
@@ -239,7 +238,7 @@ int main() {
       salvarMemDados(md);
       break;
     case 7:
-      executa_programa(mi,&inst,&decod,&reg,md,&sinais,&ula_out,&ciclo,&stack,&uf);
+      
       break;
     case 8:
       initscr();             
@@ -447,7 +446,7 @@ void salvarAssembly(char mi[256][17]) {
   char arquivo[20];
 
   inputJanelaArquivo(arquivo, sizeof(arquivo));
-	printf("\033[H\033[J"); // Limpa a tela no terminal padrão (modo texto)
+  printf("\033[H\033[J"); // Limpa a tela no terminal padrão (modo texto)
 
   FILE *arq = fopen(arquivo, "w");
   if (!arq) {
@@ -914,16 +913,11 @@ int FontePC2(int fonte, int imm, int jump) {
 	}
 }
 
-void executa_programa(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sinais *sinais,ULA_Out *ula_out,int *ciclo,Stack *stack,UF *uf) {
-	while(executa_ciclo(mi,inst,decod,reg,md,sinais,ula_out,ciclo,stack,uf) != 1){
-	}
-}
-
 int executa_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sinais *sinais,ULA_Out *ula_out,int *ciclo,Stack *stack, UF *uf) {
 
   if(reg->br[8] == 10) {
     printf("\n\nPROGRAMA ATUAL FINALIZADO!\n\n");
-    return 1;
+    return 0;
   }
 
   int dado,entradaA,entradaB,dc;
@@ -1017,8 +1011,6 @@ int executa_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sina
   infoPipeline(reg, *ciclo - 1, uf, pipewin, entradaA, entradaB);
   delwin(pipewin);
 }
-
-
 
 //funções ncusrses
 //MENU
