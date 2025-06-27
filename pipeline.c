@@ -1011,6 +1011,8 @@ int executa_ciclo(char mi[256][17],Inst *inst,Decod *decod,Reg *reg,int *md,Sina
   delwin(pipewin);
 }
 
+
+
 //funções ncusrses
 //MENU
 int menu() {
@@ -1140,6 +1142,7 @@ void infoWin(Reg *reg, Decod *decod, Inst *inst) {
 	mvwprintw(infowin0, l0++, 1, ">> REGISTRADORES <<");
   l0++;
 	mvwprintw(infowin0, l0++, 2, "PC -------- %d", reg->pc);
+  l0++;
 	for (int i = 0; i < 8; i++) {
 		mvwprintw(infowin0, l0++, 2, "REG[%d] ---- %d", i, reg->br[i]);
 	}
