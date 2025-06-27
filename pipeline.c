@@ -770,10 +770,9 @@ int menu() {
 		"4 - Imprimir registradores",
 		"5 - Salvar .asm",
 		"6 - Salvar .dat",
-		"7 - Executar programa",
-		"8 - Executar ciclo",
-		"9 - Volta um ciclo",
-		"10 - Sair"
+		"7 - Executar ciclo",
+		"8 - Volta um ciclo",
+		"9 - Sair"
 	};
 	int n_opcoes = sizeof(opcoes) / sizeof(opcoes[0]);
 	int escolha = 0;
@@ -817,6 +816,21 @@ int menu() {
   delwin(menuwin);
   endwin();
   printf("\033[H\033[J");
+}
+
+//janela para informar se o programa foi finalizado
+void mensagem_finalizacao() {
+    int altura = 5;
+    int largura = 50;
+    int pos_y = 13;           // logo abaixo do menu
+    int pos_x = 0;            // alinhado à esquerda
+
+    WINDOW *fimwin = newwin(altura, largura, pos_y, pos_x);
+    box(fimwin, 0, 0);
+    mvwprintw(fimwin, 2, 2, "Programa finalizado. Pressione uma tecla...");
+    wrefresh(fimwin);
+    wgetch(fimwin);
+    delwin(fimwin);
 }
 
 //cria janela para inputar texto
