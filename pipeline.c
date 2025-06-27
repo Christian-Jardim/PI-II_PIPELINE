@@ -597,7 +597,6 @@ if(opcode == 2) {
   } else {
     *reg = escreg;
     *mem = escmem;
-  }
 }
 }
 
